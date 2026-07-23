@@ -47,6 +47,25 @@ const fract = (val: number): number => {
   return val - Math.floor(val);
 };
 
+const WAYPOINTS = [
+  { name: 'Welcome Plaza', position: new THREE.Vector3(0, 0.1, 30) },
+  { name: 'About Me', position: new THREE.Vector3(0, 0.1, 75) },
+  { name: 'Skills Street', position: new THREE.Vector3(-40, 0.1, 80) },
+  { name: 'Experience Boulevard', position: new THREE.Vector3(-55, 0.1, 45) },
+  { name: 'Projects District', position: new THREE.Vector3(-55, 0.1, -45) },
+  { name: 'Future Vision Spire', position: new THREE.Vector3(-60, 0.1, -85) },
+  { name: 'Open Source Avenue', position: new THREE.Vector3(0, 0.1, -60) },
+  { name: 'GitHub Tower', position: new THREE.Vector3(45, 0.1, -45) },
+  { name: 'Contact Hub', position: new THREE.Vector3(60, 0.1, -60) },
+  { name: 'Certifications Hall', position: new THREE.Vector3(55, 0.1, 60) },
+  { name: 'Hackathon Arena', position: new THREE.Vector3(45, 0.1, 45) },
+  { name: 'Welcome Plaza End', position: new THREE.Vector3(0, 0.1, 30) }
+];
+
+const easeInOutCubic = (x: number): number => {
+  return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+};
+
 export const Vehicle: React.FC = () => {
   const {
     sceneState,
@@ -56,7 +75,13 @@ export const Vehicle: React.FC = () => {
     setBoostActive,
     setHasDriven,
     hasDriven,
-    quality
+    quality,
+    autoExploreActive,
+    autoExploreIndex,
+    autoExploreState,
+    setAutoExploreActive,
+    setAutoExploreIndex,
+    setAutoExploreState
   } = useExperience();
 
   const carGroupRef = useRef<THREE.Group>(null);
@@ -67,6 +92,10 @@ export const Vehicle: React.FC = () => {
   const velocity = useRef<number>(0);
   const steerAngle = useRef<number>(0);
   const driftFactor = useRef<number>(0);
+
+  // Autopilot variables
+  const autoExploreT = useRef<number>(0);
+  const autoExploreTimer = useRef<number>(0);
 
   // Wheel meshes for rotation/steering animation
   const frontLeftWheel = useRef<THREE.Mesh>(null);
@@ -103,6 +132,23 @@ export const Vehicle: React.FC = () => {
     win.synthClick = () => synth.playClick();
   }, [sceneState]);
 
+  // Sync / Reset vehicle when Auto Explore starts/stops
+  useEffect(() => {
+    if (autoExploreActive) {
+      autoExploreT.current = 0;
+      autoExploreTimer.current = 0;
+      pos.current.copy(WAYPOINTS[0].position);
+      angle.current = Math.PI;
+      velocity.current = 0;
+      steerAngle.current = 0;
+      driftFactor.current = 0;
+      if (carGroupRef.current) {
+        carGroupRef.current.position.copy(pos.current);
+        carGroupRef.current.rotation.set(0, angle.current, 0);
+      }
+    }
+  }, [autoExploreActive]);
+
   // Reset function
   useEffect(() => {
     if (inputs.reset) {
@@ -130,6 +176,79 @@ export const Vehicle: React.FC = () => {
         const time = state.clock.getElapsedTime();
         carGroupRef.current.position.y = 0.1 + Math.sin(time * 18.0) * 0.008;
       }
+      return;
+    }
+
+    // 0. AUTOPILOT / AUTO-EXPLORE MODE
+    if (autoExploreActive && autoExploreIndex >= 0 && autoExploreIndex < WAYPOINTS.length) {
+      const prevWaypoint = WAYPOINTS[autoExploreIndex === 0 ? 0 : autoExploreIndex - 1];
+      const nextWaypoint = WAYPOINTS[autoExploreIndex];
+
+      if (autoExploreState === 'driving') {
+        const dist = prevWaypoint.position.distanceTo(nextWaypoint.position);
+        const tourSpeed = 16.0; // stable speed in meters per sec
+        const duration = Math.max(dist / tourSpeed, 1.0);
+        
+        let t = autoExploreT.current + dt / duration;
+        if (t > 1.0) t = 1.0;
+        autoExploreT.current = t;
+        
+        const ease = easeInOutCubic(t);
+        const newPos = new THREE.Vector3().lerpVectors(prevWaypoint.position, nextWaypoint.position, ease);
+        pos.current.copy(newPos);
+        
+        if (t < 0.99) {
+          const nextPosFuture = new THREE.Vector3().lerpVectors(prevWaypoint.position, nextWaypoint.position, easeInOutCubic(Math.min(t + 0.01, 1.0)));
+          const dir = nextPosFuture.clone().sub(newPos).normalize();
+          if (dir.lengthSq() > 0.001) {
+            angle.current = Math.atan2(dir.x, dir.z);
+          }
+        }
+        
+        setSpeed(58);
+        setRpm(3200 + Math.sin(state.clock.getElapsedTime() * 3.0) * 150);
+        
+        if (t >= 1.0) {
+          setAutoExploreState('paused');
+          autoExploreTimer.current = 0;
+        }
+      } else {
+        // Paused at district
+        pos.current.copy(nextWaypoint.position);
+        setSpeed(0);
+        setRpm(800 + Math.sin(state.clock.getElapsedTime() * 10.0) * 10);
+        
+        autoExploreTimer.current += dt;
+        if (autoExploreTimer.current >= 8.5) {
+          if (autoExploreIndex >= WAYPOINTS.length - 1) {
+            setAutoExploreActive(false);
+            setAutoExploreIndex(-1);
+            setAutoExploreState('driving');
+          } else {
+            setAutoExploreIndex(autoExploreIndex + 1);
+            setAutoExploreState('driving');
+            autoExploreT.current = 0;
+          }
+        }
+      }
+
+      if (carGroupRef.current) {
+        const hover = Math.sin(state.clock.getElapsedTime() * 18.0) * 0.005;
+        carGroupRef.current.position.copy(pos.current);
+        carGroupRef.current.position.y += hover;
+        carGroupRef.current.rotation.set(0, angle.current, 0);
+      }
+
+      const rollingSpeed = (autoExploreState === 'driving' ? 16.0 : 0) * dt;
+      if (frontLeftWheel.current) frontLeftWheel.current.rotation.x += rollingSpeed;
+      if (frontRightWheel.current) frontRightWheel.current.rotation.x += rollingSpeed;
+      if (rearLeftWheel.current) rearLeftWheel.current.rotation.x += rollingSpeed;
+      if (rearRightWheel.current) rearRightWheel.current.rotation.x += rollingSpeed;
+
+      const win = window as any;
+      win.carPosition = pos.current;
+
+      synth.updateEngine(autoExploreState === 'driving' ? 3200 : 800, autoExploreState === 'driving' ? 16 : 0, false, false);
       return;
     }
 

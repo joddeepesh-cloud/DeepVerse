@@ -2,6 +2,7 @@ import React from 'react';
 import { CameraManager } from './CameraManager';
 import { LightingManager } from './LightingManager';
 import { EnvironmentManager } from './EnvironmentManager';
+import { PortfolioDistricts } from '../components/City/PortfolioDistricts';
 
 export const SceneManager: React.FC = () => {
   return (
@@ -14,6 +15,9 @@ export const SceneManager: React.FC = () => {
 
       {/* Orchestrates sky, mountains, roads, buildings, and holograms */}
       <EnvironmentManager />
+
+      {/* Renders the handcrafted interactive portfolio districts */}
+      <PortfolioDistricts />
     </group>
   );
 };

@@ -6,7 +6,17 @@ import * as THREE from 'three';
 
 export const CameraManager: React.FC = () => {
   const { camera } = useThree();
-  const { sceneState, setSceneState, cameraMode, setCameraMode, speed, boostActive, inputs } = useExperience();
+  const {
+    sceneState,
+    setSceneState,
+    cameraMode,
+    setCameraMode,
+    speed,
+    boostActive,
+    inputs,
+    autoExploreActive,
+    autoExploreState
+  } = useExperience();
   
   // Vectors for target lock and smooth transition interpolations
   const targetLookAt = useRef<THREE.Vector3>(new THREE.Vector3(0, 0, 0));
@@ -46,8 +56,6 @@ export const CameraManager: React.FC = () => {
     }
 
     const carPos = vehicle.position;
-    
-    // Get car yaw (from rotation Y)
     const carYaw = vehicle.rotation.y;
 
     // 2. STATE MACHINE: CALCULATE CAMERA TARGET POSITION & LOOK-AT VECTOR
@@ -58,65 +66,91 @@ export const CameraManager: React.FC = () => {
     // Force cinematic circling during intro
     const activeMode = sceneState === 'intro' ? 'cinematic' : cameraMode;
 
-    switch (activeMode) {
-      case 'cinematic':
-        // Circular sweep around the vehicle
-        introTimer.current += dt * 0.22;
-        const radius = 10.5;
+    if (autoExploreActive) {
+      if (autoExploreState === 'paused') {
+        // Cinematic side-angle pan framing the district and vehicle
+        const sideDist = 11.0;
+        const sideHeight = 4.2;
+        const sideAngle = carYaw + Math.PI / 4.5;
         goalPos.set(
-          carPos.x + Math.sin(introTimer.current) * radius,
-          carPos.y + 1.8,
-          carPos.z + Math.cos(introTimer.current) * radius
+          carPos.x - Math.sin(sideAngle) * sideDist,
+          carPos.y + sideHeight,
+          carPos.z - Math.cos(sideAngle) * sideDist
         );
-        goalTarget.copy(carPos).add(new THREE.Vector3(0, 0.8, 0));
-        lerpSpeed = 0.03; // extra slow glide
-        break;
-
-      case 'follow':
-        // Behind and above the car
-        const followDist = 8.5;
-        const followHeight = 3.6;
-        // Direction vector opposite of car heading
+        goalTarget.copy(carPos).add(new THREE.Vector3(0, 1.4, 0));
+        lerpSpeed = 0.035; // extra slow cinematic sweep
+      } else {
+        // Stable behind-the-car follow while traveling
+        const followDist = 9.5;
+        const followHeight = 4.0;
         goalPos.set(
           carPos.x - Math.sin(carYaw) * followDist,
           carPos.y + followHeight,
           carPos.z - Math.cos(carYaw) * followDist
         );
-        goalTarget.copy(carPos).add(new THREE.Vector3(0, 0.8, -1.0)); // look slightly ahead
-        lerpSpeed = 0.08;
-        break;
+        goalTarget.copy(carPos).add(new THREE.Vector3(0, 1.0, -1.0));
+        lerpSpeed = 0.05; // smooth tracking
+      }
+    } else {
+      // Manual mode camera controls
+      switch (activeMode) {
+        case 'cinematic':
+          // Circular sweep around the vehicle
+          introTimer.current += dt * 0.22;
+          const radius = 10.5;
+          goalPos.set(
+            carPos.x + Math.sin(introTimer.current) * radius,
+            carPos.y + 1.8,
+            carPos.z + Math.cos(introTimer.current) * radius
+          );
+          goalTarget.copy(carPos).add(new THREE.Vector3(0, 0.8, 0));
+          lerpSpeed = 0.03; // extra slow glide
+          break;
 
-      case 'chase':
-        // Close, low rear bumper chase view
-        const chaseDist = 6.2;
-        const chaseHeight = 2.0;
-        goalPos.set(
-          carPos.x - Math.sin(carYaw) * chaseDist,
-          carPos.y + chaseHeight,
-          carPos.z - Math.cos(carYaw) * chaseDist
-        );
-        goalTarget.copy(carPos).add(new THREE.Vector3(0, 0.6, -2.5));
-        lerpSpeed = 0.15; // responsive follow
-        break;
+        case 'follow':
+          // Behind and above the car
+          const followDist = 8.5;
+          const followHeight = 3.6;
+          goalPos.set(
+            carPos.x - Math.sin(carYaw) * followDist,
+            carPos.y + followHeight,
+            carPos.z - Math.cos(carYaw) * followDist
+          );
+          goalTarget.copy(carPos).add(new THREE.Vector3(0, 0.8, -1.0)); // look slightly ahead
+          lerpSpeed = 0.08;
+          break;
 
-      case 'driver':
-        // Cockpit POV looking forward
-        // Apply car matrix to transform local cockpit offset to world coordinates
-        const localDriverOffset = new THREE.Vector3(0, 0.72, -0.15);
-        goalPos.copy(localDriverOffset).applyMatrix4(vehicle.matrixWorld);
+        case 'chase':
+          // Close, low rear bumper chase view
+          const chaseDist = 6.2;
+          const chaseHeight = 2.0;
+          goalPos.set(
+            carPos.x - Math.sin(carYaw) * chaseDist,
+            carPos.y + chaseHeight,
+            carPos.z - Math.cos(carYaw) * chaseDist
+          );
+          goalTarget.copy(carPos).add(new THREE.Vector3(0, 0.6, -2.5));
+          lerpSpeed = 0.15; // responsive follow
+          break;
 
-        const localDriverTarget = new THREE.Vector3(0, 0.58, -15.0);
-        goalTarget.copy(localDriverTarget).applyMatrix4(vehicle.matrixWorld);
-        lerpSpeed = 0.22; // very responsive
-        break;
+        case 'driver':
+          // Cockpit POV looking forward
+          const localDriverOffset = new THREE.Vector3(0, 0.72, -0.15);
+          goalPos.copy(localDriverOffset).applyMatrix4(vehicle.matrixWorld);
 
-      case 'orbit':
-        // Unlocked Orbit controls, but keep orbit targets anchored on the vehicle position
-        goalTarget.copy(carPos).add(new THREE.Vector3(0, 1.0, 0));
-        break;
+          const localDriverTarget = new THREE.Vector3(0, 0.58, -15.0);
+          goalTarget.copy(localDriverTarget).applyMatrix4(vehicle.matrixWorld);
+          lerpSpeed = 0.22; // very responsive
+          break;
 
-      default:
-        break;
+        case 'orbit':
+          // Unlocked Orbit controls
+          goalTarget.copy(carPos).add(new THREE.Vector3(0, 1.0, 0));
+          break;
+
+        default:
+          break;
+      }
     }
 
     // 3. APPLY INTERPOLATION & SHAKE TO CAMERA
@@ -125,8 +159,8 @@ export const CameraManager: React.FC = () => {
       currentGoalPos.current.lerp(goalPos, lerpSpeed);
       camera.position.copy(currentGoalPos.current);
 
-      // Speed-dependent camera shake in chase/follow view
-      if ((activeMode === 'chase' || activeMode === 'follow') && speed > 20) {
+      // Speed-dependent camera shake (disabled in Auto Explore)
+      if (!autoExploreActive && (activeMode === 'chase' || activeMode === 'follow') && speed > 20) {
         const shakeScale = (speed / 170) * (boostActive ? 0.08 : 0.035);
         camera.position.x += (Math.random() - 0.5) * shakeScale;
         camera.position.y += (Math.random() - 0.5) * shakeScale;

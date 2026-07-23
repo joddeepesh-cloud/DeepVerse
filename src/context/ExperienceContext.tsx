@@ -26,6 +26,9 @@ interface ExperienceContextType {
   boostActive: boolean;
   hasDriven: boolean;
   inputs: DrivingInputs;
+  autoExploreActive: boolean;
+  autoExploreIndex: number;
+  autoExploreState: 'driving' | 'paused';
   setLoadingProgress: (progress: number) => void;
   setIsLoaded: (isLoaded: boolean) => void;
   setSceneState: (state: SceneState) => void;
@@ -36,6 +39,9 @@ interface ExperienceContextType {
   setBoostActive: (active: boolean) => void;
   setHasDriven: (driven: boolean) => void;
   setInputs: React.Dispatch<React.SetStateAction<DrivingInputs>>;
+  setAutoExploreActive: (active: boolean) => void;
+  setAutoExploreIndex: (index: number) => void;
+  setAutoExploreState: (state: 'driving' | 'paused') => void;
 }
 
 const defaultInputs: DrivingInputs = {
@@ -62,6 +68,9 @@ export const ExperienceProvider: React.FC<{ children: ReactNode }> = ({ children
   const [boostActive, setBoostActive] = useState<boolean>(false);
   const [hasDriven, setHasDriven] = useState<boolean>(false);
   const [inputs, setInputs] = useState<DrivingInputs>(defaultInputs);
+  const [autoExploreActive, setAutoExploreActive] = useState<boolean>(false);
+  const [autoExploreIndex, setAutoExploreIndex] = useState<number>(-1);
+  const [autoExploreState, setAutoExploreState] = useState<'driving' | 'paused'>('driving');
 
   return (
     <ExperienceContext.Provider
@@ -76,6 +85,9 @@ export const ExperienceProvider: React.FC<{ children: ReactNode }> = ({ children
         boostActive,
         hasDriven,
         inputs,
+        autoExploreActive,
+        autoExploreIndex,
+        autoExploreState,
         setLoadingProgress,
         setIsLoaded,
         setSceneState,
@@ -86,6 +98,9 @@ export const ExperienceProvider: React.FC<{ children: ReactNode }> = ({ children
         setBoostActive,
         setHasDriven,
         setInputs,
+        setAutoExploreActive,
+        setAutoExploreIndex,
+        setAutoExploreState,
       }}
     >
       {children}

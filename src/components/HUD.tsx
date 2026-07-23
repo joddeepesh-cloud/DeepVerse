@@ -1,6 +1,115 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useExperience } from '../context/ExperienceContext';
-import { Shield } from 'lucide-react';
+import { Shield, Compass } from 'lucide-react';
+
+interface TourDistrictData {
+  title: string;
+  subtitle: string;
+  achievements: string[];
+  buttonText?: string;
+  buttonUrl?: string;
+}
+
+const DISTRICT_DATA: Record<number, TourDistrictData> = {
+  1: {
+    title: "About Me District",
+    subtitle: "Deepesh Joshi // Profile",
+    achievements: [
+      "Creative Full-Stack & Graphics Engineer",
+      "Specialized in high-performance WebGL, React, and Three.js",
+      "Passionate about building immersive and memorable web experiences"
+    ]
+  },
+  2: {
+    title: "Skills Street",
+    subtitle: "Developer Toolkit // Tech Stack",
+    achievements: [
+      "Languages: TypeScript, JavaScript, Python, C++",
+      "Frameworks: React, Next.js, Vite, Three.js / Fiber",
+      "Graphics: WebGL, custom GLSL shaders, Blender, Math"
+    ],
+    buttonText: "VIEW LINKEDIN",
+    buttonUrl: "https://www.linkedin.com/in/deepesh-joshi-4b0b87190"
+  },
+  3: {
+    title: "Experience Boulevard",
+    subtitle: "Milestones // Professional Path",
+    achievements: [
+      "Software Engineer Intern at Tech Corp (Built 3D web UI)",
+      "Graphics Developer Freelancer (Delivered 10+ Three.js custom builds)",
+      "Active open-source contributor to React-Three-Fiber tools"
+    ]
+  },
+  4: {
+    title: "Projects District",
+    subtitle: "Engineering Showcase // Interactive",
+    achievements: [
+      "DeepVerse 3D: Cyberpunk procedural city portfolio",
+      "TransitOps: Real-time public transportation dashboard",
+      "Cyber-Drift: Dynamic physics-based vehicle simulation"
+    ],
+    buttonText: "VIEW PORTFOLIO REPOS",
+    buttonUrl: "https://github.com/joddeepesh-cloud"
+  },
+  5: {
+    title: "Future Vision Tower",
+    subtitle: "Next Frontiers // Advanced Research",
+    achievements: [
+      "Researching WebGPU and advanced graphics shader pipelines",
+      "Developing procedural AI generation tools for 3D web assets",
+      "Building next-gen interactive web canvas tools"
+    ]
+  },
+  6: {
+    title: "Open Source Avenue",
+    subtitle: "Collaborative Contributions // Public Repos",
+    achievements: [
+      "Maintainer of utility libraries for R3F developers",
+      "Regularly contributing code to Three.js helper modules",
+      "Active participant in web graphics communities"
+    ]
+  },
+  7: {
+    title: "GitHub Tower",
+    subtitle: "Automated Workflows // Metrics",
+    achievements: [
+      "40+ repositories hosted on GitHub",
+      "Continuous Integration / CD setup with GitHub Actions",
+      "100+ pull requests merged in various web projects"
+    ],
+    buttonText: "VIEW GITHUB",
+    buttonUrl: "https://github.com/joddeepesh-cloud"
+  },
+  8: {
+    title: "Contact Hub",
+    subtitle: "Get In Touch // Collaboration",
+    achievements: [
+      "Email: joddeepesh@gmail.com",
+      "LinkedIn: linkedin.com/in/deepesh-joshi-4b0b87190",
+      "GitHub: github.com/joddeepesh-cloud"
+    ],
+    buttonText: "SEND EMAIL",
+    buttonUrl: "mailto:joddeepesh@gmail.com"
+  },
+  9: {
+    title: "Certifications Hall",
+    subtitle: "Credentials // Core Technical Validation",
+    achievements: [
+      "AWS Certified Developer - Associate",
+      "Meta Front-End Developer Professional Certificate",
+      "Three.js Journey Graduate by Bruno Simon"
+    ]
+  },
+  10: {
+    title: "Hackathon Arena",
+    subtitle: "Rapid Prototyping // Competitions",
+    achievements: [
+      "1st Place: Cyber-Hack 2025 (Best 3D Web App category)",
+      "Top 5% in Global WebGL Design Challenge",
+      "Delivered 4 robust MVPs in high-pressure 48hr sprints"
+    ]
+  }
+};
 
 export const HUD: React.FC = () => {
   const {
@@ -11,7 +120,13 @@ export const HUD: React.FC = () => {
     rpm,
     boostActive,
     hasDriven,
-    setInputs
+    setInputs,
+    autoExploreActive,
+    autoExploreIndex,
+    autoExploreState,
+    setAutoExploreActive,
+    setAutoExploreIndex,
+    setAutoExploreState
   } = useExperience();
 
   // FPS calculations
@@ -46,16 +161,9 @@ export const HUD: React.FC = () => {
     const pollInterval = setInterval(() => {
       const root = document.getElementById('canvas-container');
       if (!root) return;
-      // We can query custom attributes or simply access the global canvas object
-      // But a cleaner way in R3F is that the vehicle itself updates its coords,
-      // or we query the scene directly by looking up the document object
       const canvas = root.querySelector('canvas');
       if (!canvas) return;
       
-      // Let's grab the actual global state we store in window (simple runtime hook)
-      // or retrieve it via the scene. Since window is globally accessible, 
-      // let's have the Vehicle write its position to window so HUD can pull it without re-rendering!
-      // This is a classic 60FPS high-speed polling trick.
       const win = window as any;
       if (win.carPosition) {
         setCarCoords({
@@ -70,9 +178,6 @@ export const HUD: React.FC = () => {
       clearInterval(pollInterval);
     };
   }, []);
-
-  // Update window positions globally
-  // We'll write this into Vehicle.tsx later: window.carPosition = pos.current;
 
   // Handle Mobile Virtual Steering Joystick Touch
   const handleJoystickStart = (e: React.TouchEvent<HTMLDivElement>) => {
@@ -130,16 +235,32 @@ export const HUD: React.FC = () => {
     const nextIdx = (idx + 1) % order.length;
     setCameraMode(order[nextIdx]);
     
-    // play click SFX
     const win = window as any;
     if (win.synthClick) win.synthClick();
   };
+
+  // Toggle Auto Explore Mode
+  const handleAutoExploreToggle = () => {
+    const nextState = !autoExploreActive;
+    setAutoExploreActive(nextState);
+    if (nextState) {
+      setAutoExploreIndex(1); // start at About Me
+      setAutoExploreState('driving');
+    } else {
+      setAutoExploreIndex(-1);
+    }
+    
+    const win = window as any;
+    if (win.synthClick) win.synthClick();
+  };
+
+  const currentDistrict = DISTRICT_DATA[autoExploreIndex];
 
   return (
     <div className="absolute inset-0 pointer-events-none z-40 flex flex-col justify-between p-4 md:p-8 font-sans">
       
       {/* 1. TOP STATS BAR */}
-      <div className="w-full flex justify-between items-start">
+      <div className="w-full flex flex-col md:flex-row justify-between items-stretch md:items-start gap-4">
         
         {/* Mission Status Widget */}
         <div className="glass-panel px-4 py-3 border-[#00f0ff]/20 flex items-center gap-3">
@@ -151,26 +272,43 @@ export const HUD: React.FC = () => {
             <span className="font-mono text-xs text-white uppercase tracking-wider mt-0.5">
               {sceneState === 'intro' 
                 ? 'SYSTEM BOOT ACTIVE' 
-                : !hasDriven 
-                  ? 'PRESS W TO DRIVE / EXPLORE' 
-                  : 'EXPLORING CITY CORE'}
+                : autoExploreActive
+                  ? `AUTOPILOT TOUR ACTIVE [${autoExploreIndex}/10]`
+                  : !hasDriven 
+                    ? 'PRESS W TO DRIVE / EXPLORE' 
+                    : 'EXPLORING CITY CORE'}
             </span>
           </div>
         </div>
 
+        {/* Large Centered Auto Explore Button */}
+        {sceneState === 'explore' && (
+          <button
+            onClick={handleAutoExploreToggle}
+            className={`pointer-events-auto px-6 py-3 border rounded font-['Orbitron'] text-xs font-black tracking-[0.2em] transition-all duration-300 shadow-[0_0_15px_rgba(0,240,255,0.15)] flex items-center justify-center gap-2.5 ${
+              autoExploreActive
+                ? 'bg-[#ff007f]/20 border-[#ff007f] text-[#ff007f] hover:bg-[#ff007f]/30'
+                : 'bg-[#00f0ff]/10 border-[#00f0ff] text-[#00f0ff] hover:bg-[#00f0ff]/25 hover:scale-105'
+            }`}
+          >
+            <Compass className={`w-4 h-4 ${autoExploreActive ? 'animate-spin text-[#ff007f]' : 'text-[#00f0ff]'}`} />
+            {autoExploreActive ? 'EXIT TOUR' : 'AUTO EXPLORE'}
+          </button>
+        )}
+
         {/* Dashboard Status */}
-        <div className="glass-panel px-4 py-3 border-[#ff007f]/25 text-[10px] font-mono text-[#8f9bb3] flex items-center gap-4">
+        <div className="glass-panel px-4 py-3 border-[#ff007f]/25 text-[10px] font-mono text-[#8f9bb3] flex items-center justify-between md:justify-start gap-4">
           <div className="flex items-center gap-1.5">
             <div className="w-1.5 h-1.5 bg-[#00f0ff] rounded-full animate-ping" />
             <span>SYS: READY</span>
           </div>
-          <div className="w-px h-3 bg-white/10" />
+          <div className="w-px h-3 bg-white/10 hidden md:block" />
           <span>FPS: {fps}</span>
         </div>
       </div>
 
       {/* 2. CENTER STAGE GAMEPLAY INSTRUCTIONS */}
-      {sceneState === 'explore' && !hasDriven && (
+      {sceneState === 'explore' && !hasDriven && !autoExploreActive && (
         <div className="absolute left-1/2 top-1/3 -translate-x-1/2 flex flex-col items-center justify-center text-center max-w-[450px]">
           <h2 className="font-['Orbitron'] text-[#00f0ff] text-xl font-black tracking-[0.25em] glow-text-cyan animate-pulse">
             MISSION STARTED
@@ -184,27 +322,68 @@ export const HUD: React.FC = () => {
         </div>
       )}
 
+      {/* 2.5. AUTO EXPLORE INFO PANEL CARD */}
+      {autoExploreActive && autoExploreState === 'paused' && currentDistrict && (
+        <div className="absolute left-4 md:left-12 top-1/3 md:top-1/2 -translate-y-1/2 pointer-events-auto z-50 max-w-[420px] w-[90%]">
+          <div className="glass-panel p-6 border-[#00f0ff]/40 bg-black/85 shadow-[0_0_30px_rgba(0,240,255,0.25)] relative overflow-hidden animate-slide-in">
+            {/* Cyberpunk corner details */}
+            <div className="absolute top-0 left-0 w-3.5 h-3.5 border-t-2 border-l-2 border-[#00f0ff]" />
+            <div className="absolute top-0 right-0 w-3.5 h-3.5 border-t-2 border-r-2 border-[#00f0ff]" />
+            <div className="absolute bottom-0 left-0 w-3.5 h-3.5 border-b-2 border-l-2 border-[#00f0ff]" />
+            <div className="absolute bottom-0 right-0 w-3.5 h-3.5 border-b-2 border-r-2 border-[#00f0ff]" />
+
+            <div className="flex flex-col gap-1.5">
+              <span className="font-['Orbitron'] text-[10px] font-extrabold tracking-[0.25em] text-[#ff007f]">
+                {currentDistrict.subtitle}
+              </span>
+              <h2 className="font-['Orbitron'] text-lg md:text-xl font-black text-white tracking-widest uppercase border-b border-[#00f0ff]/20 pb-3 mt-1">
+                {currentDistrict.title}
+              </h2>
+              
+              <ul className="space-y-3.5 my-5 font-mono text-[11px] md:text-xs text-[#b0bacf] list-none pl-0">
+                {currentDistrict.achievements.map((item, index) => (
+                  <li key={index} className="flex items-start gap-2.5">
+                    <span className="text-[#00f0ff] font-bold">❯</span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+
+              {currentDistrict.buttonText && currentDistrict.buttonUrl && (
+                <a
+                  href={currentDistrict.buttonUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-2 block w-full text-center py-3 bg-[#00f0ff]/15 hover:bg-[#00f0ff]/30 border border-[#00f0ff] rounded font-['Orbitron'] text-[10px] font-black tracking-widest text-[#00f0ff] transition-all shadow-[0_0_12px_rgba(0,240,255,0.2)]"
+                >
+                  {currentDistrict.buttonText}
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 3. BOTTOM TELEMETRY HUDS (Speedometer & Minimap) */}
       <div className="w-full flex justify-between items-end gap-6">
         
         {/* Speedometer Widget (Bottom Left) */}
         <div className="glass-panel p-5 border-[#00f0ff]/15 flex items-end gap-4 min-w-[200px] pointer-events-auto">
           <div className="relative w-16 h-16 flex items-center justify-center border-2 border-dashed border-[#00f0ff]/20 rounded-full">
-            {/* Pulsating background ring */}
             <div className="absolute inset-1 border border-white/5 rounded-full" />
             <span className="font-['Orbitron'] text-2xl font-black text-white leading-none">
               {speed}
             </span>
           </div>
-          <div className="flex flex-col justify-end">
+          <div className="flex flex-col justify-end font-mono">
             <span className="font-['Orbitron'] text-[9px] font-bold tracking-widest text-[#8f9bb3]">TELEMETRY</span>
             <span className="font-['Orbitron'] text-xs font-semibold text-[#00f0ff] glow-text-cyan mt-0.5">
               KM/H
             </span>
-            <span className="font-mono text-[9px] text-[#4e5566] mt-1.5 uppercase">
+            <span className="text-[9px] text-[#4e5566] mt-1.5 uppercase">
               RPM: {Math.round(rpm)}
             </span>
-            <span className={`font-mono text-[9px] font-bold mt-0.5 ${boostActive ? 'text-[#ff007f]' : 'text-[#4e5566]'}`}>
+            <span className={`text-[9px] font-bold mt-0.5 ${boostActive ? 'text-[#ff007f]' : 'text-[#4e5566]'}`}>
               BOOST: {boostActive ? 'ACTIVE' : 'READY'}
             </span>
           </div>
@@ -214,16 +393,14 @@ export const HUD: React.FC = () => {
         <div className="glass-panel p-4 border-white/5 flex flex-col gap-2 min-w-[150px] items-center text-center">
           <span className="font-['Orbitron'] text-[9px] tracking-widest text-[#8f9bb3]">GPS MINIMAP</span>
           
-          {/* Radar-like circular minimap */}
           <div className="relative w-24 h-24 bg-black/40 rounded-full border border-[#00f0ff]/15 overflow-hidden flex items-center justify-center">
-            {/* Grid crosshair */}
             <div className="absolute w-full h-px bg-white/5" />
             <div className="absolute h-full w-px bg-white/5" />
             <div className="absolute w-16 h-16 border border-dashed border-white/5 rounded-full" />
             <div className="absolute w-8 h-8 border border-dashed border-white/5 rounded-full" />
             
-            {/* Flashing center point */}
-            <div className="absolute w-1 h-1 bg-[#ff007f] rounded-full" />
+            {/* Center point */}
+            <div className="absolute w-1.5 h-1.5 bg-[#ff007f] rounded-full shadow-[0_0_6px_#ff007f]" />
             
             {/* Moving Car Dot */}
             <div
@@ -241,74 +418,69 @@ export const HUD: React.FC = () => {
       </div>
 
       {/* 4. MOBILE VIRTUAL CONTROLS OVERLAY */}
-      {/* Absolute overlay that binds touch controls, visible on mobile sizes (<768px) */}
-      <div className="absolute inset-x-0 bottom-0 pointer-events-none flex flex-col justify-end p-4 md:hidden">
-        
-        {/* Row for steering and throttle pedals */}
-        <div className="w-full flex justify-between items-end pointer-events-auto h-32">
-          
-          {/* Left Joystick Area */}
-          <div
-            onTouchStart={handleJoystickStart}
-            onTouchMove={handleJoystickMove}
-            onTouchEnd={handleJoystickEnd}
-            className="w-24 h-24 bg-black/60 border border-white/10 rounded-full flex items-center justify-center touch-none relative select-none"
-          >
-            {/* Center handle knob */}
-            <div
-              className="w-10 h-10 bg-[#00f0ff]/20 border-2 border-[#00f0ff] rounded-full absolute shadow-[0_0_10px_#00f0ff]"
-              style={{
-                transform: `translate(${joystickPos.x}px, ${joystickPos.y}px)`
-              }}
-            />
-          </div>
-
-          {/* Right Action buttons */}
-          <div className="flex gap-4">
+      {!autoExploreActive && (
+        <div className="absolute inset-x-0 bottom-0 pointer-events-none flex flex-col justify-end p-4 md:hidden">
+          <div className="w-full flex justify-between items-end pointer-events-auto h-32">
             
-            {/* Brake / Reverse (S key equivalent) */}
-            <button
-              onTouchStart={() => setInputs((p) => ({ ...p, backward: true }))}
-              onTouchEnd={() => setInputs((p) => ({ ...p, backward: false }))}
-              className="w-16 h-16 bg-[#ff007f]/10 border border-[#ff007f]/40 rounded-full font-['Orbitron'] text-xs font-bold text-[#ff007f] active:bg-[#ff007f]/30 active:scale-95 transition-all select-none"
+            {/* Left Joystick Area */}
+            <div
+              onTouchStart={handleJoystickStart}
+              onTouchMove={handleJoystickMove}
+              onTouchEnd={handleJoystickEnd}
+              className="w-24 h-24 bg-black/60 border border-white/10 rounded-full flex items-center justify-center touch-none relative select-none"
             >
-              BRAKE
-            </button>
+              <div
+                className="w-10 h-10 bg-[#00f0ff]/20 border-2 border-[#00f0ff] rounded-full absolute shadow-[0_0_10px_#00f0ff]"
+                style={{
+                  transform: `translate(${joystickPos.x}px, ${joystickPos.y}px)`
+                }}
+              />
+            </div>
 
-            {/* Throttle (W key equivalent) */}
+            {/* Right Action buttons */}
+            <div className="flex gap-4">
+              <button
+                onTouchStart={() => setInputs((p) => ({ ...p, backward: true }))}
+                onTouchEnd={() => setInputs((p) => ({ ...p, backward: false }))}
+                className="w-16 h-16 bg-[#ff007f]/10 border border-[#ff007f]/40 rounded-full font-['Orbitron'] text-xs font-bold text-[#ff007f] active:bg-[#ff007f]/30 active:scale-95 transition-all select-none"
+              >
+                BRAKE
+              </button>
+
+              <button
+                onTouchStart={() => setInputs((p) => ({ ...p, forward: true }))}
+                onTouchEnd={() => setInputs((p) => ({ ...p, forward: false }))}
+                className="w-16 h-16 bg-[#00f0ff]/10 border border-[#00f0ff]/40 rounded-full font-['Orbitron'] text-xs font-bold text-[#00f0ff] active:bg-[#00f0ff]/30 active:scale-95 transition-all select-none"
+              >
+                DRIVE
+              </button>
+            </div>
+          </div>
+
+          {/* Extra controls row */}
+          <div className="w-full flex justify-center gap-3 mt-4 pointer-events-auto pb-4">
             <button
-              onTouchStart={() => setInputs((p) => ({ ...p, forward: true }))}
-              onTouchEnd={() => setInputs((p) => ({ ...p, forward: false }))}
-              className="w-16 h-16 bg-[#00f0ff]/10 border border-[#00f0ff]/40 rounded-full font-['Orbitron'] text-xs font-bold text-[#00f0ff] active:bg-[#00f0ff]/30 active:scale-95 transition-all select-none"
+              onClick={handleCameraCycle}
+              className="px-3 py-1.5 rounded glass-panel border border-[#00f0ff]/20 text-[9px] font-['Orbitron'] font-bold text-[#00f0ff] select-none"
             >
-              DRIVE
+              CAM: {cameraMode.toUpperCase()}
+            </button>
+            <button
+              onTouchStart={() => setInputs((p) => ({ ...p, boost: true }))}
+              onTouchEnd={() => setInputs((p) => ({ ...p, boost: false }))}
+              className="px-3 py-1.5 rounded glass-panel border border-[#ff007f]/20 text-[9px] font-['Orbitron'] font-bold text-[#ff007f] select-none"
+            >
+              BOOST
+            </button>
+            <button
+              onClick={() => setInputs((p) => ({ ...p, reset: true }))}
+              className="px-3 py-1.5 rounded glass-panel border border-[#ffaa00]/20 text-[9px] font-['Orbitron'] font-bold text-[#ffaa00] select-none"
+            >
+              RESET
             </button>
           </div>
         </div>
-
-        {/* Row for extra controls (Camera cycle, Boost, Reset) */}
-        <div className="w-full flex justify-center gap-3 mt-4 pointer-events-auto pb-4">
-          <button
-            onClick={handleCameraCycle}
-            className="px-3 py-1.5 rounded glass-panel border border-[#00f0ff]/20 text-[9px] font-['Orbitron'] font-bold text-[#00f0ff] select-none"
-          >
-            CAM: {cameraMode.toUpperCase()}
-          </button>
-          <button
-            onTouchStart={() => setInputs((p) => ({ ...p, boost: true }))}
-            onTouchEnd={() => setInputs((p) => ({ ...p, boost: false }))}
-            className="px-3 py-1.5 rounded glass-panel border border-[#ff007f]/20 text-[9px] font-['Orbitron'] font-bold text-[#ff007f] select-none"
-          >
-            BOOST
-          </button>
-          <button
-            onClick={() => setInputs((p) => ({ ...p, reset: true }))}
-            className="px-3 py-1.5 rounded glass-panel border border-[#ffaa00]/20 text-[9px] font-['Orbitron'] font-bold text-[#ffaa00] select-none"
-          >
-            RESET
-          </button>
-        </div>
-      </div>
+      )}
 
     </div>
   );

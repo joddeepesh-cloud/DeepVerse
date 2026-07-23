@@ -110,6 +110,20 @@ interface BuildingConfig {
   beaconColor: string;
 }
 
+const DISTRICT_COORDINATES = [
+  { x: 0, z: 30 },    // Welcome Plaza
+  { x: 0, z: 75 },    // About Me
+  { x: -40, z: 80 },  // Skills Street
+  { x: -55, z: 45 },  // Experience Boulevard
+  { x: -55, z: -45 }, // Projects District
+  { x: -60, z: -85 }, // Future Vision Tower
+  { x: 0, z: -60 },   // Open Source Avenue
+  { x: 45, z: -45 },  // GitHub Tower
+  { x: 60, z: -60 },  // Contact Hub
+  { x: 55, z: 60 },   // Certifications Hall
+  { x: 45, z: 45 }    // Hackathon Arena
+];
+
 export const Buildings: React.FC = () => {
   const shaderRef = useRef<THREE.ShaderMaterial>(null);
 
@@ -133,6 +147,18 @@ export const Buildings: React.FC = () => {
         // Position coordinates
         const posX = x * spacing + (Math.random() * 4 - 2);
         const posZ = z * spacing + (Math.random() * 4 - 2);
+
+        // Skip building spawning if near any portfolio district to clear the area
+        let nearDistrict = false;
+        for (const dist of DISTRICT_COORDINATES) {
+          const dx = posX - dist.x;
+          const dz = posZ - dist.z;
+          if (dx * dx + dz * dz < 20 * 20) {
+            nearDistrict = true;
+            break;
+          }
+        }
+        if (nearDistrict) continue;
 
         // Skyscraper properties
         const height = 18 + Math.random() * 45;
