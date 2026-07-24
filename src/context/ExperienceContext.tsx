@@ -29,6 +29,7 @@ interface ExperienceContextType {
   autoExploreActive: boolean;
   autoExploreIndex: number;
   autoExploreState: 'driving' | 'paused';
+  themeMode: 'day' | 'night';
   setLoadingProgress: (progress: number) => void;
   setIsLoaded: (isLoaded: boolean) => void;
   setSceneState: (state: SceneState) => void;
@@ -42,6 +43,7 @@ interface ExperienceContextType {
   setAutoExploreActive: (active: boolean) => void;
   setAutoExploreIndex: (index: number) => void;
   setAutoExploreState: (state: 'driving' | 'paused') => void;
+  setThemeMode: (mode: 'day' | 'night') => void;
 }
 
 const defaultInputs: DrivingInputs = {
@@ -71,6 +73,7 @@ export const ExperienceProvider: React.FC<{ children: ReactNode }> = ({ children
   const [autoExploreActive, setAutoExploreActive] = useState<boolean>(false);
   const [autoExploreIndex, setAutoExploreIndex] = useState<number>(-1);
   const [autoExploreState, setAutoExploreState] = useState<'driving' | 'paused'>('driving');
+  const [themeMode, setThemeMode] = useState<'day' | 'night'>('night');
 
   return (
     <ExperienceContext.Provider
@@ -88,6 +91,7 @@ export const ExperienceProvider: React.FC<{ children: ReactNode }> = ({ children
         autoExploreActive,
         autoExploreIndex,
         autoExploreState,
+        themeMode,
         setLoadingProgress,
         setIsLoaded,
         setSceneState,
@@ -101,6 +105,7 @@ export const ExperienceProvider: React.FC<{ children: ReactNode }> = ({ children
         setAutoExploreActive,
         setAutoExploreIndex,
         setAutoExploreState,
+        setThemeMode,
       }}
     >
       {children}

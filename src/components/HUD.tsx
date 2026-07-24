@@ -15,9 +15,9 @@ const DISTRICT_DATA: Record<number, TourDistrictData> = {
     title: "About Me District",
     subtitle: "Deepesh Joshi // Profile",
     achievements: [
-      "Creative Full-Stack & Graphics Engineer",
-      "Specialized in high-performance WebGL, React, and Three.js",
-      "Passionate about building immersive and memorable web experiences"
+      "Second Year B.Tech Computer Science student",
+      "Creative Full Stack & Graphics Developer",
+      "Active participant in tech hackathons & sprints"
     ]
   },
   2: {
@@ -26,66 +26,66 @@ const DISTRICT_DATA: Record<number, TourDistrictData> = {
     achievements: [
       "Languages: TypeScript, JavaScript, Python, C++",
       "Frameworks: React, Next.js, Vite, Three.js / Fiber",
-      "Graphics: WebGL, custom GLSL shaders, Blender, Math"
+      "Tools: Git, GitHub Actions, custom GLSL shaders, Blender"
     ],
     buttonText: "VIEW LINKEDIN",
-    buttonUrl: "https://www.linkedin.com/in/deepesh-joshi-4b0b87190"
+    buttonUrl: "https://www.linkedin.com/in/deepesh-joshi-726317402?utm_source=share_via&utm_content=profile&utm_medium=member_android"
   },
   3: {
     title: "Experience Boulevard",
-    subtitle: "Milestones // Professional Path",
+    subtitle: "Milestones // Contributions",
     achievements: [
-      "Software Engineer Intern at Tech Corp (Built 3D web UI)",
-      "Graphics Developer Freelancer (Delivered 10+ Three.js custom builds)",
-      "Active open-source contributor to React-Three-Fiber tools"
+      "Contributor to Matplotlib & SciPy libraries",
+      "Contributor to pandas & pytest core codebases",
+      "Active open-source developer with GSoC proposal experience"
     ]
   },
   4: {
     title: "Projects District",
-    subtitle: "Engineering Showcase // Interactive",
+    subtitle: "Featured Applications // Interactive",
     achievements: [
-      "DeepVerse 3D: Cyberpunk procedural city portfolio",
-      "TransitOps: Real-time public transportation dashboard",
-      "Cyber-Drift: Dynamic physics-based vehicle simulation"
+      "DeepVerse: Procedural 3D WebGL Portfolio world",
+      "Built Cross-Modal Satellite Image Retrieval System",
+      "Developed high-performance full-stack web applications"
     ],
-    buttonText: "VIEW PORTFOLIO REPOS",
+    buttonText: "VIEW PROJECTS",
     buttonUrl: "https://github.com/joddeepesh-cloud"
   },
   5: {
     title: "Future Vision Tower",
-    subtitle: "Next Frontiers // Advanced Research",
+    subtitle: "Next Frontiers // Advanced Graphics",
     achievements: [
-      "Researching WebGPU and advanced graphics shader pipelines",
-      "Developing procedural AI generation tools for 3D web assets",
-      "Building next-gen interactive web canvas tools"
+      "Expanding research into WebGPU and advanced graphics rendering",
+      "Tackling complex engineering challenges in open-source systems",
+      "Developing next-generation interactive web canvas layouts"
     ]
   },
   6: {
     title: "Open Source Avenue",
-    subtitle: "Collaborative Contributions // Public Repos",
+    subtitle: "Community Collaboration // PRs",
     achievements: [
-      "Maintainer of utility libraries for R3F developers",
-      "Regularly contributing code to Three.js helper modules",
-      "Active participant in web graphics communities"
+      "Committed to public code contributions and transparency",
+      "Multiple merged Pull Requests in open-source repositories",
+      "Practicing professional Git and collaborative developer workflows"
     ]
   },
   7: {
     title: "GitHub Tower",
-    subtitle: "Automated Workflows // Metrics",
+    subtitle: "Automated Workflows // Badges",
     achievements: [
-      "40+ repositories hosted on GitHub",
-      "Continuous Integration / CD setup with GitHub Actions",
-      "100+ pull requests merged in various web projects"
+      "Pull Shark 🦈 badge earned on GitHub profile",
+      "YOLO 🎉 badge earned on GitHub profile",
+      "Active developer portfolio with public repositories"
     ],
     buttonText: "VIEW GITHUB",
     buttonUrl: "https://github.com/joddeepesh-cloud"
   },
   8: {
     title: "Contact Hub",
-    subtitle: "Get In Touch // Collaboration",
+    subtitle: "Get In Touch // Collabs",
     achievements: [
       "Email: joddeepesh@gmail.com",
-      "LinkedIn: linkedin.com/in/deepesh-joshi-4b0b87190",
+      "LinkedIn: linkedin.com/in/deepesh-joshi-726317402",
       "GitHub: github.com/joddeepesh-cloud"
     ],
     buttonText: "SEND EMAIL",
@@ -93,20 +93,20 @@ const DISTRICT_DATA: Record<number, TourDistrictData> = {
   },
   9: {
     title: "Certifications Hall",
-    subtitle: "Credentials // Core Technical Validation",
+    subtitle: "Credentials // Core Training",
     achievements: [
-      "AWS Certified Developer - Associate",
-      "Meta Front-End Developer Professional Certificate",
-      "Three.js Journey Graduate by Bruno Simon"
+      "Pursuing B.Tech Computer Science Engineering",
+      "Self-taught Three.js rendering and shader architecture",
+      "Verified public open-source Git commits"
     ]
   },
   10: {
     title: "Hackathon Arena",
-    subtitle: "Rapid Prototyping // Competitions",
+    subtitle: "Rapid Prototyping // Sprints",
     achievements: [
-      "1st Place: Cyber-Hack 2025 (Best 3D Web App category)",
-      "Top 5% in Global WebGL Design Challenge",
-      "Delivered 4 robust MVPs in high-pressure 48hr sprints"
+      "Active participant in developer hackathons",
+      "Designing and building functional MVPs in fast-paced teams",
+      "Experienced in solving technical tasks under time limits"
     ]
   }
 };
@@ -126,17 +126,20 @@ export const HUD: React.FC = () => {
     autoExploreState,
     setAutoExploreActive,
     setAutoExploreIndex,
-    setAutoExploreState
+    setAutoExploreState,
+    themeMode,
+    setThemeMode
   } = useExperience();
 
-  // FPS calculations
+  // FPS and notification states
   const [fps, setFps] = useState<number>(60);
+  const [showWelcome, setShowWelcome] = useState<boolean>(false);
   const lastTime = useRef<number>(performance.now());
   const frames = useRef<number>(0);
 
   // Car positions tracking for the minimap
   const [carCoords, setCarCoords] = useState({ x: 0, z: 25 });
-  const mapScale = 0.55; // maps 3D coordinate space to 100px minimap range
+  const mapScale = 0.55;
 
   // Touch states for mobile virtual joystick
   const [joystickActive, setJoystickActive] = useState(false);
@@ -161,8 +164,6 @@ export const HUD: React.FC = () => {
     const pollInterval = setInterval(() => {
       const root = document.getElementById('canvas-container');
       if (!root) return;
-      const canvas = root.querySelector('canvas');
-      if (!canvas) return;
       
       const win = window as any;
       if (win.carPosition) {
@@ -173,9 +174,20 @@ export const HUD: React.FC = () => {
       }
     }, 100);
 
+    // 3. Welcome Notification timing
+    const welcomeTimer = setTimeout(() => {
+      setShowWelcome(true);
+    }, 1200);
+
+    const welcomeDismissTimer = setTimeout(() => {
+      setShowWelcome(false);
+    }, 10000);
+
     return () => {
       cancelAnimationFrame(animId);
       clearInterval(pollInterval);
+      clearTimeout(welcomeTimer);
+      clearTimeout(welcomeDismissTimer);
     };
   }, []);
 
@@ -193,11 +205,9 @@ export const HUD: React.FC = () => {
     e.preventDefault();
     const touch = e.touches[0];
     
-    // Calculate displacement
     const dx = touch.clientX - joystickStart.current.x;
     const dy = touch.clientY - joystickStart.current.y;
     
-    // Clamp to max radius of 40px
     const distance = Math.sqrt(dx * dx + dy * dy);
     const maxRadius = 40;
     
@@ -210,7 +220,6 @@ export const HUD: React.FC = () => {
     
     setJoystickPos({ x: clampedX, y: clampedY });
 
-    // Map steering input: left/right threshold of 10px
     setInputs((prev) => ({
       ...prev,
       left: clampedX < -10,
@@ -254,10 +263,19 @@ export const HUD: React.FC = () => {
     if (win.synthClick) win.synthClick();
   };
 
+  // Toggle Day/Night theme
+  const handleThemeToggle = () => {
+    const nextTheme = themeMode === 'night' ? 'day' : 'night';
+    setThemeMode(nextTheme);
+    
+    const win = window as any;
+    if (win.synthClick) win.synthClick();
+  };
+
   const currentDistrict = DISTRICT_DATA[autoExploreIndex];
 
   return (
-    <div className="absolute inset-0 pointer-events-none z-40 flex flex-col justify-between p-4 md:p-8 font-sans">
+    <div className="absolute inset-0 pointer-events-none z-40 flex flex-col justify-between p-4 md:p-8 font-sans select-none">
       
       {/* 1. TOP STATS BAR */}
       <div className="w-full flex flex-col md:flex-row justify-between items-stretch md:items-start gap-4">
@@ -296,8 +314,15 @@ export const HUD: React.FC = () => {
           </button>
         )}
 
-        {/* Dashboard Status */}
+        {/* Dashboard Status & Day/Night Toggle */}
         <div className="glass-panel px-4 py-3 border-[#ff007f]/25 text-[10px] font-mono text-[#8f9bb3] flex items-center justify-between md:justify-start gap-4">
+          <button
+            onClick={handleThemeToggle}
+            className="pointer-events-auto px-2.5 py-1 bg-white/5 border border-white/10 hover:border-[#00f0ff] hover:text-[#00f0ff] rounded font-['Orbitron'] text-[9px] font-bold tracking-wider transition-all select-none"
+          >
+            MODE: {themeMode.toUpperCase()}
+          </button>
+          <div className="w-px h-3 bg-white/10 hidden md:block" />
           <div className="flex items-center gap-1.5">
             <div className="w-1.5 h-1.5 bg-[#00f0ff] rounded-full animate-ping" />
             <span>SYS: READY</span>
@@ -306,6 +331,28 @@ export const HUD: React.FC = () => {
           <span>FPS: {fps}</span>
         </div>
       </div>
+
+      {/* 1.5. WELCOME NOTIFICATION OVERLAY */}
+      {showWelcome && (
+        <div className="absolute top-24 left-1/2 -translate-x-1/2 pointer-events-auto z-50 max-w-[460px] w-[92%]">
+          <div className="glass-panel p-4 border-[#00f0ff]/35 bg-black/85 shadow-[0_0_20px_rgba(0,240,255,0.2)] flex items-start gap-3 relative animate-slide-in">
+            <button
+              onClick={() => setShowWelcome(false)}
+              className="absolute top-2 right-2 text-white/50 hover:text-white font-bold text-xs"
+            >
+              ✕
+            </button>
+            <div className="flex flex-col gap-1 pr-4">
+              <span className="font-['Orbitron'] text-xs font-black text-[#00f0ff] tracking-wider flex items-center gap-1.5">
+                ✨ Welcome to DeepVerse!
+              </span>
+              <p className="font-mono text-[10px] md:text-xs text-[#8f9bb3] leading-relaxed mt-0.5">
+                🚗 <strong>Recommended:</strong> Click <strong>AUTO EXPLORE</strong> for the complete cinematic portfolio experience.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 2. CENTER STAGE GAMEPLAY INSTRUCTIONS */}
       {sceneState === 'explore' && !hasDriven && !autoExploreActive && (
@@ -364,10 +411,10 @@ export const HUD: React.FC = () => {
         </div>
       )}
 
-      {/* 3. BOTTOM TELEMETRY HUDS (Speedometer & Minimap) */}
+      {/* 3. BOTTOM TELEMETRY HUDS */}
       <div className="w-full flex justify-between items-end gap-6">
         
-        {/* Speedometer Widget (Bottom Left) */}
+        {/* Speedometer Widget */}
         <div className="glass-panel p-5 border-[#00f0ff]/15 flex items-end gap-4 min-w-[200px] pointer-events-auto">
           <div className="relative w-16 h-16 flex items-center justify-center border-2 border-dashed border-[#00f0ff]/20 rounded-full">
             <div className="absolute inset-1 border border-white/5 rounded-full" />
@@ -389,7 +436,7 @@ export const HUD: React.FC = () => {
           </div>
         </div>
 
-        {/* Minimap Widget (Bottom Right) */}
+        {/* Minimap Widget */}
         <div className="glass-panel p-4 border-white/5 flex flex-col gap-2 min-w-[150px] items-center text-center">
           <span className="font-['Orbitron'] text-[9px] tracking-widest text-[#8f9bb3]">GPS MINIMAP</span>
           
@@ -399,10 +446,8 @@ export const HUD: React.FC = () => {
             <div className="absolute w-16 h-16 border border-dashed border-white/5 rounded-full" />
             <div className="absolute w-8 h-8 border border-dashed border-white/5 rounded-full" />
             
-            {/* Center point */}
             <div className="absolute w-1.5 h-1.5 bg-[#ff007f] rounded-full shadow-[0_0_6px_#ff007f]" />
             
-            {/* Moving Car Dot */}
             <div
               className="absolute w-2 h-2 bg-[#00f0ff] rounded-full shadow-[0_0_8px_#00f0ff] animate-pulse"
               style={{
@@ -417,12 +462,10 @@ export const HUD: React.FC = () => {
         </div>
       </div>
 
-      {/* 4. MOBILE VIRTUAL CONTROLS OVERLAY */}
+      {/* 4. MOBILE VIRTUAL CONTROLS */}
       {!autoExploreActive && (
         <div className="absolute inset-x-0 bottom-0 pointer-events-none flex flex-col justify-end p-4 md:hidden">
           <div className="w-full flex justify-between items-end pointer-events-auto h-32">
-            
-            {/* Left Joystick Area */}
             <div
               onTouchStart={handleJoystickStart}
               onTouchMove={handleJoystickMove}
@@ -437,7 +480,6 @@ export const HUD: React.FC = () => {
               />
             </div>
 
-            {/* Right Action buttons */}
             <div className="flex gap-4">
               <button
                 onTouchStart={() => setInputs((p) => ({ ...p, backward: true }))}
@@ -457,7 +499,6 @@ export const HUD: React.FC = () => {
             </div>
           </div>
 
-          {/* Extra controls row */}
           <div className="w-full flex justify-center gap-3 mt-4 pointer-events-auto pb-4">
             <button
               onClick={handleCameraCycle}

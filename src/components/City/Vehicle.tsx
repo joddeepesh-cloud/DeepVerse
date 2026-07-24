@@ -273,9 +273,9 @@ export const Vehicle: React.FC = () => {
     const decelerationRate = 14.0; // natural engine braking
     const frictionRate = 0.988;    // sliding drag coefficient
     
-    const steerSpeed = 3.8;
-    const steerDecay = 6.0;
-    const maxSteerAngle = 0.45; // ~25 degrees
+    const steerSpeed = 5.2;
+    const steerDecay = 7.5;
+    const maxSteerAngle = 0.58; // ~33 degrees (reduced turning radius)
 
     // Apply Boost state
     setBoostActive(isBoosting && velocity.current > 1 && isForward);

@@ -426,9 +426,9 @@ export const PortfolioDistricts: React.FC = () => {
               <octahedronGeometry args={[0.45, 0]} />
               <meshBasicMaterial color="#00f0ff" wireframe />
             </mesh>
-            <Html position={[0, 2.0, 0]} center transform distanceFactor={12}>
-              <div style={{ fontFamily: 'Orbitron', color: '#00f0ff', fontSize: '8px', whiteSpace: 'nowrap' }}>TRANSITOPS</div>
-            </Html>
+             <Html position={[0, 2.0, 0]} center transform distanceFactor={12}>
+               <div style={{ fontFamily: 'Orbitron', color: '#00f0ff', fontSize: '8px', whiteSpace: 'nowrap' }}>SATELLITE IMAGE RTV</div>
+             </Html>
           </group>
         </group>
       </group>
@@ -469,7 +469,7 @@ export const PortfolioDistricts: React.FC = () => {
               lineHeight: '1.4',
               whiteSpace: 'nowrap'
             }}>
-              SOFTWARE INTERN<br/>@ TECH CORP
+              OPEN SOURCE<br/>CONTRIBUTOR
             </div>
           </Html>
         </group>
