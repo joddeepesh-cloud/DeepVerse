@@ -135,9 +135,11 @@ export const HUD: React.FC = () => {
     autoExploreActive,
     autoExploreIndex,
     autoExploreState,
+    autoExploreDirection,
     setAutoExploreActive,
     setAutoExploreIndex,
     setAutoExploreState,
+    setAutoExploreDirection,
     themeMode,
     setThemeMode
   } = useExperience();
@@ -163,10 +165,22 @@ export const HUD: React.FC = () => {
     if (autoExploreState === 'paused') {
       activeHighlight = 'cinematic';
     } else if (autoExploreIndex >= 0 && autoExploreIndex < WAYPOINTS.length) {
-      const prevWaypoint = WAYPOINTS[autoExploreIndex === 0 ? 0 : autoExploreIndex - 1];
-      const nextWaypoint = WAYPOINTS[autoExploreIndex];
-      const start2D = new THREE.Vector2(prevWaypoint.position.x, prevWaypoint.position.z);
-      const end2D = new THREE.Vector2(nextWaypoint.position.x, nextWaypoint.position.z);
+      let startPos: THREE.Vector3;
+      let endPos: THREE.Vector3;
+      if (autoExploreDirection === 'forward') {
+        const prevWaypoint = WAYPOINTS[autoExploreIndex === 0 ? 0 : autoExploreIndex - 1];
+        const nextWaypoint = WAYPOINTS[autoExploreIndex];
+        startPos = prevWaypoint.position;
+        endPos = nextWaypoint.position;
+      } else {
+        const nextWaypoint = WAYPOINTS[autoExploreIndex + 1];
+        const currentWaypoint = WAYPOINTS[autoExploreIndex];
+        startPos = nextWaypoint.position;
+        endPos = currentWaypoint.position;
+      }
+
+      const start2D = new THREE.Vector2(startPos.x, startPos.z);
+      const end2D = new THREE.Vector2(endPos.x, endPos.z);
       const car2D = new THREE.Vector2(carCoords.x, carCoords.z);
       const totalLen = start2D.distanceTo(end2D);
       let t = 0;
@@ -190,8 +204,57 @@ export const HUD: React.FC = () => {
       setAutoExploreActive(false);
       setAutoExploreIndex(-1);
       setAutoExploreState('driving');
+      setAutoExploreDirection('forward');
     }
     setCameraMode(mode);
+    const win = window as any;
+    if (win.synthClick) win.synthClick();
+  };
+
+  // Auto explore navigation controls handlers
+  const handlePrevDistrict = () => {
+    if (!autoExploreActive) return;
+    if (autoExploreState === 'paused' || autoExploreState === 'manually_paused') {
+      if (autoExploreIndex > 1) {
+        setAutoExploreIndex(autoExploreIndex - 1);
+        setAutoExploreDirection('backward');
+        setAutoExploreState('driving');
+      }
+    } else {
+      setAutoExploreDirection('backward');
+    }
+    const win = window as any;
+    if (win.synthClick) win.synthClick();
+  };
+
+  const handleNextDistrict = () => {
+    if (!autoExploreActive) return;
+    if (autoExploreIndex < WAYPOINTS.length - 2) {
+      setAutoExploreIndex(autoExploreIndex + 1);
+      setAutoExploreDirection('forward');
+      setAutoExploreState('driving');
+    }
+    const win = window as any;
+    if (win.synthClick) win.synthClick();
+  };
+
+  const handlePauseTour = () => {
+    setAutoExploreState('manually_paused');
+    const win = window as any;
+    if (win.synthClick) win.synthClick();
+  };
+
+  const handleResumeTour = () => {
+    setAutoExploreState('driving');
+    const win = window as any;
+    if (win.synthClick) win.synthClick();
+  };
+
+  const handleStopTour = () => {
+    setAutoExploreActive(false);
+    setAutoExploreIndex(-1);
+    setAutoExploreState('driving');
+    setAutoExploreDirection('forward');
     const win = window as any;
     if (win.synthClick) win.synthClick();
   };
@@ -224,22 +287,29 @@ export const HUD: React.FC = () => {
       }
     }, 100);
 
-    // 3. Welcome Notification timing
+    return () => {
+      cancelAnimationFrame(animId);
+      clearInterval(pollInterval);
+    };
+  }, []);
+
+  // Repositioned welcome notification card timer: runs only after exploring starts
+  useEffect(() => {
+    if (sceneState !== 'explore') return;
+
     const welcomeTimer = setTimeout(() => {
       setShowWelcome(true);
-    }, 1200);
+    }, 1000);
 
     const welcomeDismissTimer = setTimeout(() => {
       setShowWelcome(false);
     }, 10000);
 
     return () => {
-      cancelAnimationFrame(animId);
-      clearInterval(pollInterval);
       clearTimeout(welcomeTimer);
       clearTimeout(welcomeDismissTimer);
     };
-  }, []);
+  }, [sceneState]);
 
   // Handle Mobile Virtual Steering Joystick Touch
   const handleJoystickStart = (e: React.TouchEvent<HTMLDivElement>) => {
@@ -294,8 +364,11 @@ export const HUD: React.FC = () => {
     if (nextState) {
       setAutoExploreIndex(1); // start at About Me
       setAutoExploreState('driving');
+      setAutoExploreDirection('forward');
     } else {
       setAutoExploreIndex(-1);
+      setAutoExploreDirection('forward');
+      setAutoExploreState('driving');
     }
     
     const win = window as any;
@@ -338,19 +411,70 @@ export const HUD: React.FC = () => {
           </div>
         </div>
 
-        {/* Large Centered Auto Explore Button */}
+        {/* Large Centered Auto Explore Button / Autopilot Control Bar */}
         {sceneState === 'explore' && (
-          <button
-            onClick={handleAutoExploreToggle}
-            className={`pointer-events-auto px-6 py-3 border rounded font-['Orbitron'] text-xs font-black tracking-[0.2em] transition-all duration-300 shadow-[0_0_15px_rgba(0,240,255,0.15)] flex items-center justify-center gap-2.5 ${
-              autoExploreActive
-                ? 'bg-[#ff007f]/20 border-[#ff007f] text-[#ff007f] hover:bg-[#ff007f]/30'
-                : 'bg-[#00f0ff]/10 border-[#00f0ff] text-[#00f0ff] hover:bg-[#00f0ff]/25 hover:scale-105'
-            }`}
-          >
-            <Compass className={`w-4 h-4 ${autoExploreActive ? 'animate-spin text-[#ff007f]' : 'text-[#00f0ff]'}`} />
-            {autoExploreActive ? 'EXIT TOUR' : 'AUTO EXPLORE'}
-          </button>
+          <div className="pointer-events-auto flex items-center gap-2 bg-black/80 border border-[#00f0ff]/20 p-1.5 rounded shadow-[0_0_20px_rgba(0,240,255,0.15)]">
+            {!autoExploreActive ? (
+              <button
+                onClick={handleAutoExploreToggle}
+                className="px-5 py-2.5 bg-[#00f0ff]/10 border border-[#00f0ff]/40 hover:bg-[#00f0ff]/25 hover:scale-105 text-[#00f0ff] font-['Orbitron'] text-xs font-black tracking-[0.2em] rounded transition-all duration-300 flex items-center gap-2 shadow-[0_0_10px_rgba(0,240,255,0.1)]"
+              >
+                <Compass className="w-3.5 h-3.5 text-[#00f0ff]" />
+                AUTO EXPLORE
+              </button>
+            ) : (
+              <div className="flex items-center gap-1 md:gap-2">
+                <div className="hidden lg:flex flex-col items-start px-2 font-mono text-[9px] text-[#8f9bb3] uppercase tracking-wider">
+                  <span className="text-[#00f0ff] font-bold">AUTOPILOT</span>
+                  <span>DISTRICT {autoExploreIndex}/10</span>
+                </div>
+                
+                <button
+                  onClick={handlePrevDistrict}
+                  title="Previous District"
+                  disabled={autoExploreIndex <= 1 && (autoExploreState === 'paused' || autoExploreState === 'manually_paused')}
+                  className="px-3 py-2 bg-[#00f0ff]/5 hover:bg-[#00f0ff]/20 border border-[#00f0ff]/30 hover:border-[#00f0ff] disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:border-[#00f0ff]/30 text-[#00f0ff] font-bold text-xs rounded transition-all select-none flex items-center justify-center gap-1.5 min-h-[32px]"
+                >
+                  ⏮ <span className="hidden sm:inline font-['Orbitron'] text-[9px] tracking-wider">PREV</span>
+                </button>
+
+                {autoExploreState === 'driving' ? (
+                  <button
+                    onClick={handlePauseTour}
+                    title="Pause Tour"
+                    className="px-4 py-2 bg-[#ffaa00]/10 hover:bg-[#ffaa00]/25 border border-[#ffaa00]/40 hover:border-[#ffaa00] text-[#ffaa00] font-bold text-xs rounded transition-all select-none flex items-center justify-center gap-1.5 min-h-[32px]"
+                  >
+                    ⏸ <span className="hidden sm:inline font-['Orbitron'] text-[9px] tracking-wider">PAUSE</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleResumeTour}
+                    title="Resume Tour"
+                    className="px-4 py-2 bg-[#00f0ff]/10 hover:bg-[#00f0ff]/25 border border-[#00f0ff]/40 hover:border-[#00f0ff] text-[#00f0ff] font-bold text-xs rounded transition-all select-none flex items-center justify-center gap-1.5 min-h-[32px]"
+                  >
+                    ▶️ <span className="hidden sm:inline font-['Orbitron'] text-[9px] tracking-wider">PLAY</span>
+                  </button>
+                )}
+
+                <button
+                  onClick={handleNextDistrict}
+                  title="Next District"
+                  disabled={autoExploreIndex >= WAYPOINTS.length - 2}
+                  className="px-3 py-2 bg-[#00f0ff]/5 hover:bg-[#00f0ff]/20 border border-[#00f0ff]/30 hover:border-[#00f0ff] disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:border-[#00f0ff]/30 text-[#00f0ff] font-bold text-xs rounded transition-all select-none flex items-center justify-center gap-1.5 min-h-[32px]"
+                >
+                  <span className="hidden sm:inline font-['Orbitron'] text-[9px] tracking-wider">NEXT</span> ⏭
+                </button>
+
+                <button
+                  onClick={handleStopTour}
+                  title="Stop Tour"
+                  className="px-3 py-2 bg-[#ff007f]/10 hover:bg-[#ff007f]/25 border border-[#ff007f]/40 hover:border-[#ff007f] text-[#ff007f] font-bold text-xs rounded transition-all select-none flex items-center justify-center gap-1.5 min-h-[32px]"
+                >
+                  ⏹ <span className="hidden sm:inline font-['Orbitron'] text-[9px] tracking-wider">STOP</span>
+                </button>
+              </div>
+            )}
+          </div>
         )}
 
         {/* Dashboard Status & Day/Night Toggle */}
@@ -409,7 +533,7 @@ export const HUD: React.FC = () => {
       )}
 
       {/* 2.5. AUTO EXPLORE INFO PANEL CARD */}
-      {autoExploreActive && autoExploreState === 'paused' && currentDistrict && (
+      {autoExploreActive && (autoExploreState === 'paused' || autoExploreState === 'manually_paused') && currentDistrict && (
         <div className="absolute left-4 md:left-12 top-1/3 md:top-1/2 -translate-y-1/2 pointer-events-auto z-50 max-w-[420px] w-[90%]">
           <div className="glass-panel p-6 border-[#00f0ff]/40 bg-black/85 shadow-[0_0_30px_rgba(0,240,255,0.25)] relative overflow-hidden animate-slide-in">
             {/* Cyberpunk corner details */}
@@ -452,37 +576,37 @@ export const HUD: React.FC = () => {
 
       {/* 2.75. CAMERA MODE MENU */}
       {sceneState === 'explore' && (
-        <div className="absolute right-4 md:right-8 bottom-[180px] md:bottom-[170px] pointer-events-auto z-50 flex flex-col items-end gap-2 animate-slide-in">
-          <div className="glass-panel p-3 border-[#00f0ff]/25 bg-black/85 shadow-[0_0_20px_rgba(0,240,255,0.15)] w-[240px] flex flex-col gap-2 relative group/panel transition-all duration-300 hover:border-[#00f0ff]/50">
+        <div className="absolute right-3 sm:right-6 md:right-8 bottom-[185px] sm:bottom-[180px] md:bottom-[170px] pointer-events-auto z-50 flex flex-col items-end gap-2 animate-slide-in">
+          <div className="glass-panel p-2 md:p-3 border-[#00f0ff]/25 bg-black/85 shadow-[0_0_20px_rgba(0,240,255,0.15)] w-[140px] sm:w-[190px] md:w-[240px] flex flex-col gap-1.5 md:gap-2 relative group/panel transition-all duration-300 hover:border-[#00f0ff]/50">
             {/* Corner Cyberpunk Details */}
             <div className="absolute -top-px -left-px w-2.5 h-2.5 border-t border-l border-[#00f0ff]" />
             <div className="absolute -bottom-px -right-px w-2.5 h-2.5 border-b border-r border-[#00f0ff]" />
             
             {/* Tooltip Description on hover */}
-            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1 bg-black/90 border border-[#00f0ff]/40 rounded text-[9px] font-mono text-[#00f0ff] opacity-0 group-hover/panel:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap shadow-[0_0_8px_rgba(0,240,255,0.25)] tracking-wider z-[60]">
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1 bg-black/90 border border-[#00f0ff]/40 rounded text-[8px] md:text-[9px] font-mono text-[#00f0ff] opacity-0 group-hover/panel:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap shadow-[0_0_8px_rgba(0,240,255,0.25)] tracking-wider z-[60]">
               Change Camera View
             </div>
 
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-[#00f0ff]/20 pb-1.5">
-              <div className="flex items-center gap-1.5">
-                <span role="img" aria-label="camera" className="text-xs">📷</span>
-                <span className="font-['Orbitron'] text-[10px] font-extrabold tracking-[0.2em] text-[#00f0ff]">
+            <div className="flex items-center justify-between border-b border-[#00f0ff]/20 pb-1">
+              <div className="flex items-center gap-1">
+                <span role="img" aria-label="camera" className="text-[10px] md:text-xs">📷</span>
+                <span className="font-['Orbitron'] text-[8px] sm:text-[9px] md:text-[10px] font-extrabold tracking-[0.1em] md:tracking-[0.2em] text-[#00f0ff] whitespace-nowrap">
                   CAMERA MODE
                 </span>
               </div>
-              <span className="font-mono text-[8px] text-[#00f0ff]/50">ACTIVE</span>
+              <span className="hidden sm:inline font-mono text-[7px] md:text-[8px] text-[#00f0ff]/50">ACTIVE</span>
             </div>
 
             {/* Buttons Grid */}
-            <div className="grid grid-cols-2 gap-1.5">
+            <div className="grid grid-cols-2 gap-1 md:gap-1.5">
               {cameraOptions.map((opt) => {
                 const isActive = activeHighlight === opt.mode;
                 return (
                   <button
                     key={opt.mode}
                     onClick={() => selectCameraMode(opt.mode)}
-                    className={`px-2 py-1.5 border rounded font-['Orbitron'] text-[9px] font-bold tracking-wider transition-all duration-200 text-center uppercase select-none ${
+                    className={`px-1 md:px-2 py-1 md:py-1.5 border rounded font-['Orbitron'] text-[8px] sm:text-[9px] font-bold tracking-wider transition-all duration-200 text-center uppercase select-none ${
                       isActive
                         ? 'bg-[#ff007f]/20 border-[#ff007f] text-[#ff007f] shadow-[0_0_10px_rgba(255,0,127,0.3)] font-black'
                         : 'bg-[#00f0ff]/5 border-[#00f0ff]/20 text-[#00f0ff]/80 hover:bg-[#00f0ff]/15 hover:border-[#00f0ff] hover:text-[#00f0ff] hover:scale-[1.03]'

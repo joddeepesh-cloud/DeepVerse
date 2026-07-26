@@ -79,9 +79,11 @@ export const Vehicle: React.FC = () => {
     autoExploreActive,
     autoExploreIndex,
     autoExploreState,
+    autoExploreDirection,
     setAutoExploreActive,
     setAutoExploreIndex,
-    setAutoExploreState
+    setAutoExploreState,
+    setAutoExploreDirection
   } = useExperience();
 
   const carGroupRef = useRef<THREE.Group>(null);
@@ -149,6 +151,11 @@ export const Vehicle: React.FC = () => {
     }
   }, [autoExploreActive]);
 
+  // Reset autoExploreT when index changes during Auto Explore
+  useEffect(() => {
+    autoExploreT.current = 0;
+  }, [autoExploreIndex, autoExploreActive]);
+
   // Reset function
   useEffect(() => {
     if (inputs.reset) {
@@ -181,11 +188,24 @@ export const Vehicle: React.FC = () => {
 
     // 0. AUTOPILOT / AUTO-EXPLORE MODE
     if (autoExploreActive && autoExploreIndex >= 0 && autoExploreIndex < WAYPOINTS.length) {
-      const prevWaypoint = WAYPOINTS[autoExploreIndex === 0 ? 0 : autoExploreIndex - 1];
-      const nextWaypoint = WAYPOINTS[autoExploreIndex];
-
       if (autoExploreState === 'driving') {
-        const dist = prevWaypoint.position.distanceTo(nextWaypoint.position);
+        let startPos: THREE.Vector3;
+        let endPos: THREE.Vector3;
+
+        if (autoExploreDirection === 'forward') {
+          const prevWaypoint = WAYPOINTS[autoExploreIndex === 0 ? 0 : autoExploreIndex - 1];
+          const nextWaypoint = WAYPOINTS[autoExploreIndex];
+          startPos = prevWaypoint.position;
+          endPos = nextWaypoint.position;
+        } else {
+          // Backward direction: drive from the next waypoint index back to the current waypoint index
+          const nextWaypoint = WAYPOINTS[autoExploreIndex + 1];
+          const currentWaypoint = WAYPOINTS[autoExploreIndex];
+          startPos = nextWaypoint.position;
+          endPos = currentWaypoint.position;
+        }
+
+        const dist = startPos.distanceTo(endPos);
         const tourSpeed = 16.0; // stable speed in meters per sec
         const duration = Math.max(dist / tourSpeed, 1.0);
         
@@ -194,11 +214,11 @@ export const Vehicle: React.FC = () => {
         autoExploreT.current = t;
         
         const ease = easeInOutCubic(t);
-        const newPos = new THREE.Vector3().lerpVectors(prevWaypoint.position, nextWaypoint.position, ease);
+        const newPos = new THREE.Vector3().lerpVectors(startPos, endPos, ease);
         pos.current.copy(newPos);
         
         if (t < 0.99) {
-          const nextPosFuture = new THREE.Vector3().lerpVectors(prevWaypoint.position, nextWaypoint.position, easeInOutCubic(Math.min(t + 0.01, 1.0)));
+          const nextPosFuture = new THREE.Vector3().lerpVectors(startPos, endPos, easeInOutCubic(Math.min(t + 0.01, 1.0)));
           const dir = nextPosFuture.clone().sub(newPos).normalize();
           if (dir.lengthSq() > 0.001) {
             angle.current = Math.atan2(dir.x, dir.z);
@@ -210,11 +230,17 @@ export const Vehicle: React.FC = () => {
         
         if (t >= 1.0) {
           setAutoExploreState('paused');
+          setAutoExploreDirection('forward'); // reset direction to forward after arrival
           autoExploreTimer.current = 0;
         }
+      } else if (autoExploreState === 'manually_paused') {
+        // Manually paused: vehicle freezes position, speed is 0, engine idles
+        setSpeed(0);
+        setRpm(800 + Math.sin(state.clock.getElapsedTime() * 10.0) * 10);
       } else {
-        // Paused at district
-        pos.current.copy(nextWaypoint.position);
+        // Paused at district (autoExploreState === 'paused')
+        const currentWaypoint = WAYPOINTS[autoExploreIndex];
+        pos.current.copy(currentWaypoint.position);
         setSpeed(0);
         setRpm(800 + Math.sin(state.clock.getElapsedTime() * 10.0) * 10);
         
@@ -224,9 +250,11 @@ export const Vehicle: React.FC = () => {
             setAutoExploreActive(false);
             setAutoExploreIndex(-1);
             setAutoExploreState('driving');
+            setAutoExploreDirection('forward');
           } else {
             setAutoExploreIndex(autoExploreIndex + 1);
             setAutoExploreState('driving');
+            setAutoExploreDirection('forward');
             autoExploreT.current = 0;
           }
         }

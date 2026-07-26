@@ -28,7 +28,8 @@ interface ExperienceContextType {
   inputs: DrivingInputs;
   autoExploreActive: boolean;
   autoExploreIndex: number;
-  autoExploreState: 'driving' | 'paused';
+  autoExploreState: 'driving' | 'paused' | 'manually_paused';
+  autoExploreDirection: 'forward' | 'backward';
   themeMode: 'day' | 'night';
   setLoadingProgress: (progress: number) => void;
   setIsLoaded: (isLoaded: boolean) => void;
@@ -42,7 +43,8 @@ interface ExperienceContextType {
   setInputs: React.Dispatch<React.SetStateAction<DrivingInputs>>;
   setAutoExploreActive: (active: boolean) => void;
   setAutoExploreIndex: (index: number) => void;
-  setAutoExploreState: (state: 'driving' | 'paused') => void;
+  setAutoExploreState: (state: 'driving' | 'paused' | 'manually_paused') => void;
+  setAutoExploreDirection: (dir: 'forward' | 'backward') => void;
   setThemeMode: (mode: 'day' | 'night') => void;
 }
 
@@ -72,7 +74,8 @@ export const ExperienceProvider: React.FC<{ children: ReactNode }> = ({ children
   const [inputs, setInputs] = useState<DrivingInputs>(defaultInputs);
   const [autoExploreActive, setAutoExploreActive] = useState<boolean>(false);
   const [autoExploreIndex, setAutoExploreIndex] = useState<number>(-1);
-  const [autoExploreState, setAutoExploreState] = useState<'driving' | 'paused'>('driving');
+  const [autoExploreState, setAutoExploreState] = useState<'driving' | 'paused' | 'manually_paused'>('driving');
+  const [autoExploreDirection, setAutoExploreDirection] = useState<'forward' | 'backward'>('forward');
   const [themeMode, setThemeMode] = useState<'day' | 'night'>('night');
 
   return (
@@ -91,6 +94,7 @@ export const ExperienceProvider: React.FC<{ children: ReactNode }> = ({ children
         autoExploreActive,
         autoExploreIndex,
         autoExploreState,
+        autoExploreDirection,
         themeMode,
         setLoadingProgress,
         setIsLoaded,
@@ -105,6 +109,7 @@ export const ExperienceProvider: React.FC<{ children: ReactNode }> = ({ children
         setAutoExploreActive,
         setAutoExploreIndex,
         setAutoExploreState,
+        setAutoExploreDirection,
         setThemeMode,
       }}
     >

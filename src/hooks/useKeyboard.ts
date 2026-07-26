@@ -2,7 +2,13 @@ import { useEffect } from 'react';
 import { useExperience, type DrivingInputs } from '../context/ExperienceContext';
 
 export const useKeyboard = () => {
-  const { setInputs, setCameraMode } = useExperience();
+  const {
+    setInputs,
+    setCameraMode,
+    autoExploreActive,
+    autoExploreState,
+    setAutoExploreState
+  } = useExperience();
 
   useEffect(() => {
     const keyMap: Record<string, keyof DrivingInputs> = {
@@ -22,6 +28,13 @@ export const useKeyboard = () => {
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Overriding Space key for pausing/resuming autopilot tour
+      if (e.code === 'Space' && autoExploreActive) {
+        e.preventDefault();
+        setAutoExploreState(autoExploreState === 'driving' ? 'manually_paused' : 'driving');
+        return;
+      }
+
       const inputName = keyMap[e.code];
       if (!inputName) return;
 
@@ -62,6 +75,6 @@ export const useKeyboard = () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [setInputs, setCameraMode]);
+  }, [setInputs, setCameraMode, autoExploreActive, autoExploreState, setAutoExploreState]);
 };
 export default useKeyboard;
