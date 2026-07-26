@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import { useExperience } from '../../context/ExperienceContext';
 import * as THREE from 'three';
 import { synth } from '../../hooks/useAssetLoader';
+import { DroneBeacon } from './DroneBeacon';
 
 // Shared building coordinates helper to check collisions
 const isNearBuilding = (x: number, z: number): boolean => {
@@ -69,6 +70,7 @@ const easeInOutCubic = (x: number): number => {
 export const Vehicle: React.FC = () => {
   const {
     sceneState,
+    cameraMode,
     inputs,
     setSpeed,
     setRpm,
@@ -407,6 +409,10 @@ export const Vehicle: React.FC = () => {
       // Rotate car mesh. Y rotation accounts for drift angle too
       carGroupRef.current.rotation.set(0, angle.current, 0);
 
+      // Scale vehicle smoothly based on drone camera view (5-10% scale up)
+      const targetScale = cameraMode === 'drone' ? 1.08 : 1.0;
+      carGroupRef.current.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 6.0 * dt);
+
       // Body roll/sway based on centripetal force
       const lateralG = velocity.current * steerAngle.current * 0.04;
       carGroupRef.current.rotation.z = THREE.MathUtils.lerp(
@@ -533,6 +539,8 @@ export const Vehicle: React.FC = () => {
 
       {/* Main Vehicle Physical Group */}
       <group ref={carGroupRef} position={[pos.current.x, pos.current.y, pos.current.z]} name="Vehicle">
+        {/* Holographic Drone Beacon for visibility in Drone View */}
+        <DroneBeacon active={cameraMode === 'drone'} />
         
         {/* CAR BODY MESH ASSEMBLY */}
         <group position={[0, 0.4, 0]}>

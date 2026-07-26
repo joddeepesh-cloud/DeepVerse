@@ -417,6 +417,71 @@ export const HUD: React.FC = () => {
   return (
     <div className="absolute inset-0 pointer-events-none z-40 flex flex-col justify-between p-4 md:p-8 font-sans select-none">
       
+      {/* Onboarding Guidance Overlay */}
+      {sceneState === 'intro' && (
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center p-4 z-50 pointer-events-auto">
+          <div className="glass-panel p-6 md:p-8 border-[#00f0ff]/40 bg-black/90 shadow-[0_0_40px_rgba(0,240,255,0.25)] max-w-md w-full relative overflow-hidden animate-slide-in flex flex-col gap-4 text-center">
+            {/* Cyberpunk corners */}
+            <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-[#00f0ff]" />
+            <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-[#00f0ff]" />
+            <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-[#00f0ff]" />
+            <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-[#00f0ff]" />
+
+            <div className="flex flex-col gap-1.5 items-center">
+              <span role="img" aria-label="car" className="text-2xl animate-bounce">🚗</span>
+              <h2 className="font-['Orbitron'] text-lg md:text-xl font-black text-white tracking-[0.15em] uppercase mt-1">
+                Welcome to DeepVerse
+              </h2>
+              <div className="w-16 h-0.5 bg-gradient-to-r from-transparent via-[#00f0ff] to-transparent my-2" />
+            </div>
+
+            <p className="font-mono text-xs text-[#00f0ff] leading-relaxed font-bold animate-pulse">
+              Press <span className="px-2 py-1 bg-[#00f0ff]/10 border border-[#00f0ff] rounded text-white font-sans text-sm mx-1 shadow-[0_0_8px_rgba(0,240,255,0.4)]">W</span> to start driving.
+            </p>
+            
+            <p className="font-mono text-[10px] text-[#8f9bb3] leading-relaxed">
+              Once you're moving, the full interface and controls will automatically appear.
+            </p>
+
+            <div className="border-t border-white/10 pt-4 mt-2">
+              <span className="font-['Orbitron'] text-[9px] font-black tracking-widest text-[#ff007f] block mb-3 uppercase">
+                Controls Preview
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-left font-mono text-[10px] text-[#b0bacf] max-w-[320px] mx-auto">
+                <div className="flex items-center gap-2">
+                  <span className="text-[#00f0ff] font-bold w-12 text-right">⬆ W</span>
+                  <span className="text-white/80">➔ Accelerate</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[#00f0ff] font-bold w-12 text-right">⬇ S</span>
+                  <span className="text-white/80">➔ Reverse</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[#00f0ff] font-bold w-12 text-right">⬅ A</span>
+                  <span className="text-white/80">➔ Turn Left</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[#00f0ff] font-bold w-12 text-right">➡ D</span>
+                  <span className="text-white/80">➔ Turn Right</span>
+                </div>
+                <div className="flex items-center gap-2 sm:col-span-2 mt-1 border-t border-white/5 pt-2 flex-wrap justify-between">
+                  <div className="flex items-center gap-1">
+                    <span role="img" aria-label="camera" className="text-xs">📷</span>
+                    <span className="text-white/60">Camera</span>
+                    <span className="text-white/80">➔ Change view</span>
+                  </div>
+                  <div className="flex items-center gap-1 flex-nowrap">
+                    <span role="img" aria-label="compass" className="text-xs">🚀</span>
+                    <span className="text-white/60">Auto Tour</span>
+                    <span className="text-white/80">➔ Guided</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 1. TOP STATS BAR */}
       <div className="w-full flex flex-col md:flex-row justify-between items-stretch md:items-start gap-4">
         
