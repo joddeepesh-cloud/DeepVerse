@@ -3,6 +3,7 @@ import { CameraManager } from './CameraManager';
 import { LightingManager } from './LightingManager';
 import { EnvironmentManager } from './EnvironmentManager';
 import { PortfolioDistricts } from '../components/City/PortfolioDistricts';
+import { RoadGuidance } from '../components/City/RoadGuidance';
 
 export const SceneManager: React.FC = () => {
   return (
@@ -18,6 +19,9 @@ export const SceneManager: React.FC = () => {
 
       {/* Renders the handcrafted interactive portfolio districts */}
       <PortfolioDistricts />
+
+      {/* Renders the futuristic road guidance signs */}
+      <RoadGuidance />
     </group>
   );
 };

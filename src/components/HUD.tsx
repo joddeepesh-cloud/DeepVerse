@@ -150,6 +150,20 @@ export const HUD: React.FC = () => {
   const lastTime = useRef<number>(performance.now());
   const frames = useRef<number>(0);
 
+  // Discovery and manual details states
+  const [detectedDistrictIndex, setDetectedDistrictIndex] = useState<number>(-1);
+  const [manualOpenDetailsIndex, setManualOpenDetailsIndex] = useState<number>(-1);
+  const [discoveredDistricts, setDiscoveredDistricts] = useState<number[]>([]);
+
+  // Sync discovery state with auto-explore indexing
+  useEffect(() => {
+    if (autoExploreActive && autoExploreIndex >= 1 && autoExploreIndex <= 10) {
+      if (!discoveredDistricts.includes(autoExploreIndex)) {
+        setDiscoveredDistricts((prev) => [...prev, autoExploreIndex]);
+      }
+    }
+  }, [autoExploreActive, autoExploreIndex, discoveredDistricts]);
+
   // Car positions tracking for the minimap
   const [carCoords, setCarCoords] = useState({ x: 0, z: 25 });
   const mapScale = 0.55;
@@ -280,10 +294,24 @@ export const HUD: React.FC = () => {
       
       const win = window as any;
       if (win.carPosition) {
-        setCarCoords({
-          x: win.carPosition.x,
-          z: win.carPosition.z
-        });
+        const x = win.carPosition.x;
+        const z = win.carPosition.z;
+        setCarCoords({ x, z });
+        
+        // Proximity detection for manual discovery mode
+        if (!autoExploreActive && sceneState === 'explore') {
+          let nearestIdx = -1;
+          for (let i = 1; i <= 10; i++) {
+            const wp = WAYPOINTS[i];
+            if (!wp) continue;
+            const dist = Math.sqrt((x - wp.position.x) ** 2 + (z - wp.position.z) ** 2);
+            if (dist < 14.0) { // 14 units detection zone
+              nearestIdx = i;
+              break;
+            }
+          }
+          setDetectedDistrictIndex(nearestIdx);
+        }
       }
     }, 100);
 
@@ -291,7 +319,7 @@ export const HUD: React.FC = () => {
       cancelAnimationFrame(animId);
       clearInterval(pollInterval);
     };
-  }, []);
+  }, [autoExploreActive, sceneState]);
 
   // Repositioned welcome notification card timer: runs only after exploring starts
   useEffect(() => {
@@ -495,6 +523,88 @@ export const HUD: React.FC = () => {
         </div>
       </div>
 
+      {/* 1.1. AUTO EXPLORE Progress Indicator */}
+      {autoExploreActive && autoExploreIndex >= 1 && autoExploreIndex <= 11 && (
+        <div className="absolute top-[180px] md:top-[100px] left-1/2 -translate-x-1/2 pointer-events-auto z-50 flex flex-col items-center bg-black/85 border border-[#00f0ff]/20 px-5 py-3 rounded shadow-[0_0_25px_rgba(0,240,255,0.12)] min-w-[280px] sm:min-w-[320px] md:min-w-[380px] animate-slide-in">
+          <div className="flex flex-col items-center gap-1 w-full text-center">
+            <span className="font-['Orbitron'] text-[9px] font-black tracking-[0.3em] text-[#00f0ff] uppercase animate-pulse">
+              🌆 DEEPVERSE TOUR
+            </span>
+            <span className="font-['Orbitron'] text-xs font-black text-white tracking-widest uppercase mt-0.5 whitespace-nowrap">
+              {WAYPOINTS[autoExploreIndex]?.name || 'UNKNOWN ZONE'}
+            </span>
+            
+            {/* Horizontal Track of 11 Dots */}
+            <div className="flex items-center justify-between w-full mt-3 px-2.5 relative">
+              {/* Line track */}
+              <div className="absolute left-3 right-3 h-[2px] bg-white/10 top-1/2 -translate-y-1/2 -z-10" />
+              <div 
+                className="absolute left-3 h-[2px] bg-[#00f0ff] top-1/2 -translate-y-1/2 -z-10 transition-all duration-500 shadow-[0_0_8px_#00f0ff]" 
+                style={{ width: `${Math.max(0, Math.min(100, ((autoExploreIndex - 1) / 10) * 100))}%` }}
+              />
+              
+              {Array.from({ length: 11 }).map((_, idx) => {
+                const stepNum = idx + 1;
+                const isPassed = stepNum < autoExploreIndex;
+                const isCurrent = stepNum === autoExploreIndex;
+                
+                return (
+                  <div
+                    key={idx}
+                    title={WAYPOINTS[stepNum]?.name}
+                    className={`w-3.5 h-3.5 rounded-full border-2 transition-all duration-300 flex items-center justify-center relative cursor-help ${
+                      isCurrent
+                        ? 'border-[#ff007f] bg-black scale-110 shadow-[0_0_10px_#ff007f]'
+                        : isPassed
+                          ? 'border-[#00f0ff] bg-[#00f0ff] shadow-[0_0_6px_rgba(0,240,255,0.4)]'
+                          : 'border-white/20 bg-black/40'
+                    }`}
+                  >
+                    {isCurrent && (
+                      <div className="w-1.5 h-1.5 rounded-full bg-[#ff007f] animate-pulse" />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            
+            <span className="font-mono text-[9px] text-[#8f9bb3] tracking-wider mt-2.5">
+              {autoExploreIndex} / 11 Districts Completed
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* 1.25. DISCOVERY POPUP OVERLAY */}
+      {!autoExploreActive && detectedDistrictIndex !== -1 && manualOpenDetailsIndex === -1 && (
+        <div className="absolute top-[180px] md:top-[100px] left-1/2 -translate-x-1/2 pointer-events-auto z-50 max-w-[420px] w-[92%] animate-slide-in">
+          <div className="glass-panel p-4 border-[#00f0ff]/40 bg-black/90 shadow-[0_0_22px_rgba(0,240,255,0.25)] flex items-center justify-between gap-4 relative">
+            {/* Cyberpunk accent lines */}
+            <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-[#00f0ff]" />
+            <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-[#00f0ff]" />
+            <div className="flex flex-col pr-4 text-left">
+              <span className="font-mono text-[9px] text-[#8f9bb3] uppercase tracking-wider">📍 Nearby District Discovered</span>
+              <span className="font-['Orbitron'] text-xs font-black text-white tracking-widest mt-0.5 uppercase">
+                {WAYPOINTS[detectedDistrictIndex]?.name}
+              </span>
+            </div>
+            <button
+              onClick={() => {
+                setManualOpenDetailsIndex(detectedDistrictIndex);
+                if (!discoveredDistricts.includes(detectedDistrictIndex)) {
+                  setDiscoveredDistricts((prev) => [...prev, detectedDistrictIndex]);
+                }
+                const win = window as any;
+                if (win.synthClick) win.synthClick();
+              }}
+              className="px-3.5 py-2 bg-[#00f0ff]/10 hover:bg-[#00f0ff]/25 border border-[#00f0ff] rounded font-['Orbitron'] text-[9px] font-black tracking-widest text-[#00f0ff] hover:scale-105 transition-all shadow-[0_0_10px_rgba(0,240,255,0.25)]"
+            >
+              OPEN DETAILS
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* 1.5. WELCOME NOTIFICATION OVERLAY */}
       {showWelcome && (
         <div className="absolute top-24 left-1/2 -translate-x-1/2 pointer-events-auto z-50 max-w-[460px] w-[92%]">
@@ -532,10 +642,21 @@ export const HUD: React.FC = () => {
         </div>
       )}
 
-      {/* 2.5. AUTO EXPLORE INFO PANEL CARD */}
-      {autoExploreActive && (autoExploreState === 'paused' || autoExploreState === 'manually_paused') && currentDistrict && (
+      {/* 2.5. DISTRICT INFO PANEL CARD */}
+      {((autoExploreActive && (autoExploreState === 'paused' || autoExploreState === 'manually_paused') && currentDistrict) ||
+        (!autoExploreActive && manualOpenDetailsIndex !== -1)) && (
         <div className="absolute left-4 md:left-12 top-1/3 md:top-1/2 -translate-y-1/2 pointer-events-auto z-50 max-w-[420px] w-[90%]">
           <div className="glass-panel p-6 border-[#00f0ff]/40 bg-black/85 shadow-[0_0_30px_rgba(0,240,255,0.25)] relative overflow-hidden animate-slide-in">
+            {/* Close button for manual exploration mode */}
+            {!autoExploreActive && (
+              <button
+                onClick={() => setManualOpenDetailsIndex(-1)}
+                className="absolute top-3 right-3 text-white/50 hover:text-white font-['Orbitron'] text-[9px] font-black tracking-wider transition-all border border-white/10 hover:border-[#ff007f] hover:text-[#ff007f] px-2.5 py-1 rounded bg-black/50 hover:bg-[#ff007f]/10 z-10"
+              >
+                ✕ CLOSE
+              </button>
+            )}
+
             {/* Cyberpunk corner details */}
             <div className="absolute top-0 left-0 w-3.5 h-3.5 border-t-2 border-l-2 border-[#00f0ff]" />
             <div className="absolute top-0 right-0 w-3.5 h-3.5 border-t-2 border-r-2 border-[#00f0ff]" />
@@ -544,29 +665,30 @@ export const HUD: React.FC = () => {
 
             <div className="flex flex-col gap-1.5">
               <span className="font-['Orbitron'] text-[10px] font-extrabold tracking-[0.25em] text-[#ff007f]">
-                {currentDistrict.subtitle}
+                {autoExploreActive ? currentDistrict.subtitle : DISTRICT_DATA[manualOpenDetailsIndex]?.subtitle}
               </span>
               <h2 className="font-['Orbitron'] text-lg md:text-xl font-black text-white tracking-widest uppercase border-b border-[#00f0ff]/20 pb-3 mt-1">
-                {currentDistrict.title}
+                {autoExploreActive ? currentDistrict.title : DISTRICT_DATA[manualOpenDetailsIndex]?.title}
               </h2>
               
               <ul className="space-y-3.5 my-5 font-mono text-[11px] md:text-xs text-[#b0bacf] list-none pl-0">
-                {currentDistrict.achievements.map((item, index) => (
-                  <li key={index} className="flex items-start gap-2.5">
+                {(autoExploreActive ? currentDistrict.achievements : DISTRICT_DATA[manualOpenDetailsIndex]?.achievements || []).map((item, idx) => (
+                  <li key={idx} className="flex items-start gap-2.5">
                     <span className="text-[#00f0ff] font-bold">❯</span>
                     <span>{item}</span>
                   </li>
                 ))}
               </ul>
 
-              {currentDistrict.buttonText && currentDistrict.buttonUrl && (
+              {((autoExploreActive ? currentDistrict.buttonText : DISTRICT_DATA[manualOpenDetailsIndex]?.buttonText) && 
+                (autoExploreActive ? currentDistrict.buttonUrl : DISTRICT_DATA[manualOpenDetailsIndex]?.buttonUrl)) && (
                 <a
-                  href={currentDistrict.buttonUrl}
+                  href={autoExploreActive ? currentDistrict.buttonUrl : DISTRICT_DATA[manualOpenDetailsIndex]?.buttonUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-2 block w-full text-center py-3 bg-[#00f0ff]/15 hover:bg-[#00f0ff]/30 border border-[#00f0ff] rounded font-['Orbitron'] text-[10px] font-black tracking-widest text-[#00f0ff] transition-all shadow-[0_0_12px_rgba(0,240,255,0.2)]"
                 >
-                  {currentDistrict.buttonText}
+                  {autoExploreActive ? currentDistrict.buttonText : DISTRICT_DATA[manualOpenDetailsIndex]?.buttonText}
                 </a>
               )}
             </div>
@@ -656,14 +778,53 @@ export const HUD: React.FC = () => {
             <div className="absolute w-16 h-16 border border-dashed border-white/5 rounded-full" />
             <div className="absolute w-8 h-8 border border-dashed border-white/5 rounded-full" />
             
+            <svg className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden">
+              {/* Route lines */}
+              <polyline
+                points={WAYPOINTS.map(wp => `${48 + wp.position.x * mapScale},${48 + wp.position.z * mapScale}`).join(' ')}
+                fill="none"
+                stroke={autoExploreActive ? "#00f0ff" : "#ff007f"}
+                strokeWidth="1.2"
+                strokeDasharray="2,2"
+                opacity="0.4"
+              />
+              {/* Waypoint nodes */}
+              {WAYPOINTS.slice(0, 11).map((wp, idx) => {
+                const isDiscovered = discoveredDistricts.includes(idx);
+                // Active destination is autoExploreIndex in tour mode, or detectedDistrictIndex in manual mode
+                const isActive = autoExploreActive ? autoExploreIndex === idx : detectedDistrictIndex === idx;
+                
+                let color = '#3a3f50'; // hidden
+                if (isActive) {
+                  color = '#ff007f'; // destination active
+                } else if (isDiscovered) {
+                  color = '#00f0ff'; // discovered
+                }
+                
+                return (
+                  <circle
+                    key={idx}
+                    cx={48 + wp.position.x * mapScale}
+                    cy={48 + wp.position.z * mapScale}
+                    r={isActive ? 2.5 : 1.5}
+                    fill={color}
+                  />
+                );
+              })}
+            </svg>
+
+            {/* Central hub marker */}
             <div className="absolute w-1.5 h-1.5 bg-[#ff007f] rounded-full shadow-[0_0_6px_#ff007f]" />
             
+            {/* Player vehicle position */}
             <div
-              className="absolute w-2 h-2 bg-[#00f0ff] rounded-full shadow-[0_0_8px_#00f0ff] animate-pulse"
+              className="absolute w-2.5 h-2.5 bg-[#00f0ff] rounded-full shadow-[0_0_8px_#00f0ff] border border-white flex items-center justify-center z-10"
               style={{
                 transform: `translate(${carCoords.x * mapScale}px, ${carCoords.z * mapScale}px)`
               }}
-            />
+            >
+              <div className="w-1.5 h-1.5 bg-[#00f0ff] rounded-full animate-ping" />
+            </div>
           </div>
           
           <span className="font-mono text-[9px] text-[#4e5566] mt-1">

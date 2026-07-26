@@ -301,9 +301,9 @@ export const Vehicle: React.FC = () => {
     const decelerationRate = 14.0; // natural engine braking
     const frictionRate = 0.988;    // sliding drag coefficient
     
-    const steerSpeed = 5.2;
-    const steerDecay = 7.5;
-    const maxSteerAngle = 0.58; // ~33 degrees (reduced turning radius)
+    const steerSpeed = 7.2;
+    const steerDecay = 11.0;
+    const maxSteerAngle = 0.80; // smaller turning radius
 
     // Apply Boost state
     setBoostActive(isBoosting && velocity.current > 1 && isForward);
@@ -371,8 +371,8 @@ export const Vehicle: React.FC = () => {
     }
 
     // 3. COLLISION AND MOVEMENT INTEGRATION
-    // Yaw rotation update
-    angle.current += (velocity.current * 0.04) * steerAngle.current * dt;
+    // Yaw rotation update (improved turning sharpness)
+    angle.current += (velocity.current * 0.055) * steerAngle.current * dt;
 
     // Try moving car position
     const nextPos = pos.current.clone();
