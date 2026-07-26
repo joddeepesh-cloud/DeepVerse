@@ -28,7 +28,7 @@ interface ExperienceContextType {
   inputs: DrivingInputs;
   autoExploreActive: boolean;
   autoExploreIndex: number;
-  autoExploreState: 'driving' | 'paused' | 'manually_paused';
+  autoExploreState: 'driving' | 'paused' | 'manually_paused' | 'finished';
   autoExploreDirection: 'forward' | 'backward';
   themeMode: 'day' | 'night';
   setLoadingProgress: (progress: number) => void;
@@ -43,7 +43,7 @@ interface ExperienceContextType {
   setInputs: React.Dispatch<React.SetStateAction<DrivingInputs>>;
   setAutoExploreActive: (active: boolean) => void;
   setAutoExploreIndex: (index: number) => void;
-  setAutoExploreState: (state: 'driving' | 'paused' | 'manually_paused') => void;
+  setAutoExploreState: (state: 'driving' | 'paused' | 'manually_paused' | 'finished') => void;
   setAutoExploreDirection: (dir: 'forward' | 'backward') => void;
   setThemeMode: (mode: 'day' | 'night') => void;
 }
@@ -74,7 +74,7 @@ export const ExperienceProvider: React.FC<{ children: ReactNode }> = ({ children
   const [inputs, setInputs] = useState<DrivingInputs>(defaultInputs);
   const [autoExploreActive, setAutoExploreActive] = useState<boolean>(false);
   const [autoExploreIndex, setAutoExploreIndex] = useState<number>(-1);
-  const [autoExploreState, setAutoExploreState] = useState<'driving' | 'paused' | 'manually_paused'>('driving');
+  const [autoExploreState, setAutoExploreState] = useState<'driving' | 'paused' | 'manually_paused' | 'finished'>('driving');
   const [autoExploreDirection, setAutoExploreDirection] = useState<'forward' | 'backward'>('forward');
   const [themeMode, setThemeMode] = useState<'day' | 'night'>('night');
 

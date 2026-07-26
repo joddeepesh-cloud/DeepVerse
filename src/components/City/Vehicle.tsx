@@ -231,7 +231,11 @@ export const Vehicle: React.FC = () => {
         setRpm(3200 + Math.sin(state.clock.getElapsedTime() * 3.0) * 150);
         
         if (t >= 1.0) {
-          setAutoExploreState('paused');
+          if (autoExploreIndex === WAYPOINTS.length - 1) {
+            setAutoExploreState('finished');
+          } else {
+            setAutoExploreState('paused');
+          }
           setAutoExploreDirection('forward'); // reset direction to forward after arrival
           autoExploreTimer.current = 0;
         }
@@ -239,6 +243,15 @@ export const Vehicle: React.FC = () => {
         // Manually paused: vehicle freezes position, speed is 0, engine idles
         setSpeed(0);
         setRpm(800 + Math.sin(state.clock.getElapsedTime() * 10.0) * 10);
+      } else if (autoExploreState === 'finished') {
+        // Grand Finale State: Vehicle stops static, engine RPM fades completely out over time
+        setSpeed(0);
+        
+        const currentRpm = Math.max(800 - autoExploreTimer.current * 100, 0);
+        setRpm(currentRpm);
+        synth.updateEngine(currentRpm, 0, false, false);
+        
+        autoExploreTimer.current += dt;
       } else {
         // Paused at district (autoExploreState === 'paused')
         const currentWaypoint = WAYPOINTS[autoExploreIndex];
@@ -278,7 +291,9 @@ export const Vehicle: React.FC = () => {
       const win = window as any;
       win.carPosition = pos.current;
 
-      synth.updateEngine(autoExploreState === 'driving' ? 3200 : 800, autoExploreState === 'driving' ? 16 : 0, false, false);
+      if (autoExploreState !== 'finished') {
+        synth.updateEngine(autoExploreState === 'driving' ? 3200 : 800, autoExploreState === 'driving' ? 16 : 0, false, false);
+      }
       return;
     }
 

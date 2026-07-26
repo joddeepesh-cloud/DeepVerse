@@ -154,6 +154,7 @@ export const HUD: React.FC = () => {
   const [detectedDistrictIndex, setDetectedDistrictIndex] = useState<number>(-1);
   const [manualOpenDetailsIndex, setManualOpenDetailsIndex] = useState<number>(-1);
   const [discoveredDistricts, setDiscoveredDistricts] = useState<number[]>([]);
+  const [finaleTime, setFinaleTime] = useState<number>(0);
 
   // Sync discovery state with auto-explore indexing
   useEffect(() => {
@@ -269,6 +270,18 @@ export const HUD: React.FC = () => {
     setAutoExploreIndex(-1);
     setAutoExploreState('driving');
     setAutoExploreDirection('forward');
+    setFinaleTime(0);
+    const win = window as any;
+    if (win.synthClick) win.synthClick();
+  };
+
+  const handleReplayTour = () => {
+    setAutoExploreActive(true);
+    setAutoExploreIndex(1); // start at About Me
+    setAutoExploreState('driving');
+    setAutoExploreDirection('forward');
+    setCameraMode('follow');
+    setFinaleTime(0);
     const win = window as any;
     if (win.synthClick) win.synthClick();
   };
@@ -313,13 +326,20 @@ export const HUD: React.FC = () => {
           setDetectedDistrictIndex(nearestIdx);
         }
       }
+
+      // Track timer for grand finale ending screen
+      if (autoExploreActive && autoExploreState === 'finished') {
+        setFinaleTime((prev) => prev + 0.1);
+      } else {
+        setFinaleTime(0);
+      }
     }, 100);
 
     return () => {
       cancelAnimationFrame(animId);
       clearInterval(pollInterval);
     };
-  }, [autoExploreActive, sceneState]);
+  }, [autoExploreActive, autoExploreState, sceneState]);
 
   // Repositioned welcome notification card timer: runs only after exploring starts
   useEffect(() => {
@@ -416,6 +436,9 @@ export const HUD: React.FC = () => {
 
   return (
     <div className="absolute inset-0 pointer-events-none z-40 flex flex-col justify-between p-4 md:p-8 font-sans select-none">
+      
+      {autoExploreState !== 'finished' && (
+        <>
       
       {/* Onboarding Guidance Overlay */}
       {sceneState === 'intro' && (
@@ -949,6 +972,78 @@ export const HUD: React.FC = () => {
             >
               RESET
             </button>
+          </div>
+        </div>
+      )}
+      
+      </>)}
+
+      {/* Thank You overlay panel inside Grand Finale */}
+      {autoExploreActive && autoExploreState === 'finished' && finaleTime >= 2.5 && (
+        <div 
+          className="absolute inset-0 bg-black/50 backdrop-blur-[3px] flex items-center justify-center p-4 z-50 pointer-events-auto transition-opacity duration-1000"
+          style={{ opacity: Math.max(0, Math.min(1.0, (finaleTime - 2.5) / 1.5)) }}
+        >
+          <div className="glass-panel p-8 md:p-10 border-[#00f0ff]/40 bg-black/90 shadow-[0_0_50px_rgba(0,240,255,0.3)] max-w-lg w-full relative overflow-hidden animate-slide-in flex flex-col gap-6 text-center">
+            {/* Cyberpunk corner details */}
+            <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-[#00f0ff]" />
+            <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-[#00f0ff]" />
+            <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-[#00f0ff]" />
+            <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-[#00f0ff]" />
+
+            <div className="flex flex-col gap-2 items-center">
+              <span className="text-4xl animate-pulse filter drop-shadow-[0_0_10px_#00f0ff]">🌆</span>
+              <h2 className="font-['Orbitron'] text-xl md:text-2xl font-black text-white tracking-[0.2em] uppercase mt-2">
+                THANK YOU FOR EXPLORING
+              </h2>
+              <h3 className="font-['Orbitron'] text-sm font-black text-[#00f0ff] tracking-[0.3em] uppercase">
+                DEEPVERSE
+              </h3>
+              <div className="w-20 h-0.5 bg-gradient-to-r from-transparent via-[#ff007f] to-transparent my-3" />
+            </div>
+
+            <p className="font-mono text-xs md:text-sm text-[#b0bacf] leading-relaxed italic max-w-sm mx-auto">
+              "Every district tells a story. Thank you for taking the time to explore mine."
+            </p>
+            <span className="font-['Orbitron'] text-[10px] font-black text-[#ff007f] tracking-widest uppercase">
+              — Deepesh Joshi
+            </span>
+
+            {/* Social / Contact CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-3 mt-4 w-full justify-center">
+              <a
+                href="https://github.com/joddeepesh-cloud"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2.5 bg-white/5 border border-white/10 hover:border-[#00f0ff] hover:bg-[#00f0ff]/10 hover:text-[#00f0ff] rounded font-['Orbitron'] text-[10px] font-bold tracking-widest text-white/90 transition-all text-center flex items-center justify-center gap-2"
+              >
+                🐙 GITHUB
+              </a>
+              <a
+                href="https://www.linkedin.com/in/deepesh-joshi-726317402?utm_source=share_via&utm_content=profile&utm_medium=member_android"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2.5 bg-white/5 border border-white/10 hover:border-[#00f0ff] hover:bg-[#00f0ff]/10 hover:text-[#00f0ff] rounded font-['Orbitron'] text-[10px] font-bold tracking-widest text-white/90 transition-all text-center flex items-center justify-center gap-2"
+              >
+                💼 LINKEDIN
+              </a>
+              <a
+                href="mailto:joddeepesh@gmail.com"
+                className="px-4 py-2.5 bg-white/5 border border-white/10 hover:border-[#ff007f] hover:bg-[#ff007f]/10 hover:text-[#ff007f] rounded font-['Orbitron'] text-[10px] font-bold tracking-widest text-white/90 transition-all text-center flex items-center justify-center gap-2"
+              >
+                📧 CONTACT ME
+              </a>
+            </div>
+
+            {/* Replay option */}
+            <div className="border-t border-white/5 pt-4 mt-2">
+              <button
+                onClick={handleReplayTour}
+                className="font-['Orbitron'] text-[9px] font-black tracking-[0.25em] text-[#00f0ff]/60 hover:text-[#00f0ff] hover:scale-105 transition-all select-none uppercase flex items-center gap-2 mx-auto px-4 py-2 bg-white/5 border border-white/5 hover:border-[#00f0ff]/30 rounded"
+              >
+                🔄 EXPLORE AGAIN
+              </button>
+            </div>
           </div>
         </div>
       )}

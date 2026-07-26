@@ -27,6 +27,7 @@ export const CameraManager: React.FC = () => {
 
   // Circle angle helper for cinematic/intro sweep
   const introTimer = useRef<number>(0);
+  const finaleTimer = useRef<number>(0);
 
   // Monitor key press W to end introduction and begin roaming
   useEffect(() => {
@@ -38,6 +39,13 @@ export const CameraManager: React.FC = () => {
 
   useFrame((state, delta) => {
     const dt = Math.min(delta, 0.05);
+
+    // Track timer for grand finale ending cinematic
+    if (autoExploreActive && autoExploreState === 'finished') {
+      finaleTimer.current += dt;
+    } else {
+      finaleTimer.current = 0;
+    }
 
     // 1. Find Vehicle in Three.js hierarchy
     const vehicle = state.scene.getObjectByName('Vehicle') as THREE.Group | undefined;
@@ -67,10 +75,12 @@ export const CameraManager: React.FC = () => {
     let lerpSpeed = 0.06; // standard smooth damping
 
     // Force cinematic circling during intro
-    let activeMode: CameraMode | 'cinematic-pan' = sceneState === 'intro' ? 'cinematic' : cameraMode;
+    let activeMode: CameraMode | 'cinematic-pan' | 'grand-finale' = sceneState === 'intro' ? 'cinematic' : cameraMode;
 
     if (autoExploreActive) {
-      if (autoExploreState === 'paused') {
+      if (autoExploreState === 'finished') {
+        activeMode = 'grand-finale';
+      } else if (autoExploreState === 'paused') {
         // Cinematic side-angle pan framing the district and vehicle
         activeMode = 'cinematic-pan';
       } else if (autoExploreIndex >= 0 && autoExploreIndex < WAYPOINTS.length) {
@@ -107,6 +117,23 @@ export const CameraManager: React.FC = () => {
 
     // Run active camera mode logic
     switch (activeMode) {
+      case 'grand-finale': {
+        // Grand Finale cinematic sequence: slowly lift upward and rotate around the city
+        const fTime = finaleTimer.current;
+        const liftHeight = 4.2 + Math.min(fTime / 10.0, 1.0) * 35.0; // rises from 4.2 to 39.2
+        const radius = 11.0 + Math.min(fTime / 10.0, 1.0) * 20.0; // moves back to show scale
+        const angle = carYaw + fTime * 0.12; // slow orbit rotation
+        
+        goalPos.set(
+          carPos.x - Math.sin(angle) * radius,
+          carPos.y + liftHeight,
+          carPos.z - Math.cos(angle) * radius
+        );
+        goalTarget.copy(carPos).add(new THREE.Vector3(0, 1.8, 0));
+        lerpSpeed = 0.025; // majestic smooth flight
+        break;
+      }
+
       case 'cinematic-pan': {
         const sideDist = 11.0;
         const sideHeight = 4.2;
