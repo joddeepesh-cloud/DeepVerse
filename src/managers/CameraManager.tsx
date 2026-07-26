@@ -1,8 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
-import { useExperience } from '../context/ExperienceContext';
+import { useExperience, type CameraMode } from '../context/ExperienceContext';
 import * as THREE from 'three';
+import { WAYPOINTS } from '../components/City/Vehicle';
 
 export const CameraManager: React.FC = () => {
   const { camera } = useThree();
@@ -15,12 +16,14 @@ export const CameraManager: React.FC = () => {
     boostActive,
     inputs,
     autoExploreActive,
+    autoExploreIndex,
     autoExploreState
   } = useExperience();
   
   // Vectors for target lock and smooth transition interpolations
   const targetLookAt = useRef<THREE.Vector3>(new THREE.Vector3(0, 0, 0));
   const currentGoalPos = useRef<THREE.Vector3>(new THREE.Vector3(0, 50, 100));
+  const currentUp = useRef<THREE.Vector3>(new THREE.Vector3(0, 1, 0));
 
   // Circle angle helper for cinematic/intro sweep
   const introTimer = useRef<number>(0);
@@ -64,11 +67,47 @@ export const CameraManager: React.FC = () => {
     let lerpSpeed = 0.06; // standard smooth damping
 
     // Force cinematic circling during intro
-    const activeMode = sceneState === 'intro' ? 'cinematic' : cameraMode;
+    let activeMode: CameraMode | 'cinematic-pan' = sceneState === 'intro' ? 'cinematic' : cameraMode;
 
     if (autoExploreActive) {
       if (autoExploreState === 'paused') {
         // Cinematic side-angle pan framing the district and vehicle
+        activeMode = 'cinematic-pan';
+      } else if (autoExploreIndex >= 0 && autoExploreIndex < WAYPOINTS.length) {
+        // Calculate current path leg progression
+        const prevWaypoint = WAYPOINTS[autoExploreIndex === 0 ? 0 : autoExploreIndex - 1];
+        const nextWaypoint = WAYPOINTS[autoExploreIndex];
+        const carPos2D = new THREE.Vector2(carPos.x, carPos.z);
+        const start2D = new THREE.Vector2(prevWaypoint.position.x, prevWaypoint.position.z);
+        const end2D = new THREE.Vector2(nextWaypoint.position.x, nextWaypoint.position.z);
+        const totalLen = start2D.distanceTo(end2D);
+        let t = 0;
+        if (totalLen > 0.001) {
+          const toCar = carPos2D.clone().sub(start2D);
+          const lineDir = end2D.clone().sub(start2D).normalize();
+          t = THREE.MathUtils.clamp(toCar.dot(lineDir) / totalLen, 0, 1);
+        }
+
+        // Cycle cameras: Follow -> Drone -> Chase based on path progression on long legs
+        if (totalLen > 35) {
+          if (t < 0.25) {
+            activeMode = 'follow';
+          } else if (t < 0.7) {
+            activeMode = 'drone';
+          } else {
+            activeMode = 'chase';
+          }
+        } else {
+          activeMode = 'follow';
+        }
+      } else {
+        activeMode = 'follow';
+      }
+    }
+
+    // Run active camera mode logic
+    switch (activeMode) {
+      case 'cinematic-pan': {
         const sideDist = 11.0;
         const sideHeight = 4.2;
         const sideAngle = carYaw + Math.PI / 4.5;
@@ -79,78 +118,82 @@ export const CameraManager: React.FC = () => {
         );
         goalTarget.copy(carPos).add(new THREE.Vector3(0, 1.4, 0));
         lerpSpeed = 0.035; // extra slow cinematic sweep
-      } else {
-        // Stable behind-the-car follow while traveling
-        const followDist = 9.5;
-        const followHeight = 4.0;
+        break;
+      }
+
+      case 'cinematic':
+        // Circular sweep around the vehicle
+        introTimer.current += dt * 0.22;
+        const radius = 10.5;
+        goalPos.set(
+          carPos.x + Math.sin(introTimer.current) * radius,
+          carPos.y + 1.8,
+          carPos.z + Math.cos(introTimer.current) * radius
+        );
+        goalTarget.copy(carPos).add(new THREE.Vector3(0, 0.8, 0));
+        lerpSpeed = 0.03; // extra slow glide
+        break;
+
+      case 'follow': {
+        // Behind and above the car
+        const followDist = autoExploreActive ? 9.5 : 8.5;
+        const followHeight = autoExploreActive ? 4.0 : 3.6;
         goalPos.set(
           carPos.x - Math.sin(carYaw) * followDist,
           carPos.y + followHeight,
           carPos.z - Math.cos(carYaw) * followDist
         );
-        goalTarget.copy(carPos).add(new THREE.Vector3(0, 1.0, -1.0));
-        lerpSpeed = 0.05; // smooth tracking
+        goalTarget.copy(carPos).add(new THREE.Vector3(0, autoExploreActive ? 1.0 : 0.8, -1.0)); // look slightly ahead
+        lerpSpeed = autoExploreActive ? 0.05 : 0.08;
+        break;
       }
-    } else {
-      // Manual mode camera controls
-      switch (activeMode) {
-        case 'cinematic':
-          // Circular sweep around the vehicle
-          introTimer.current += dt * 0.22;
-          const radius = 10.5;
-          goalPos.set(
-            carPos.x + Math.sin(introTimer.current) * radius,
-            carPos.y + 1.8,
-            carPos.z + Math.cos(introTimer.current) * radius
-          );
-          goalTarget.copy(carPos).add(new THREE.Vector3(0, 0.8, 0));
-          lerpSpeed = 0.03; // extra slow glide
-          break;
 
-        case 'follow':
-          // Behind and above the car
-          const followDist = 8.5;
-          const followHeight = 3.6;
-          goalPos.set(
-            carPos.x - Math.sin(carYaw) * followDist,
-            carPos.y + followHeight,
-            carPos.z - Math.cos(carYaw) * followDist
-          );
-          goalTarget.copy(carPos).add(new THREE.Vector3(0, 0.8, -1.0)); // look slightly ahead
-          lerpSpeed = 0.08;
-          break;
+      case 'chase':
+        // Close, low rear bumper chase view
+        const chaseDist = 6.2;
+        const chaseHeight = 2.0;
+        goalPos.set(
+          carPos.x - Math.sin(carYaw) * chaseDist,
+          carPos.y + chaseHeight,
+          carPos.z - Math.cos(carYaw) * chaseDist
+        );
+        goalTarget.copy(carPos).add(new THREE.Vector3(0, 0.6, -2.5));
+        lerpSpeed = 0.15; // responsive follow
+        break;
 
-        case 'chase':
-          // Close, low rear bumper chase view
-          const chaseDist = 6.2;
-          const chaseHeight = 2.0;
-          goalPos.set(
-            carPos.x - Math.sin(carYaw) * chaseDist,
-            carPos.y + chaseHeight,
-            carPos.z - Math.cos(carYaw) * chaseDist
-          );
-          goalTarget.copy(carPos).add(new THREE.Vector3(0, 0.6, -2.5));
-          lerpSpeed = 0.15; // responsive follow
-          break;
+      case 'driver':
+        // Cockpit POV looking forward
+        const localDriverOffset = new THREE.Vector3(0, 0.72, -0.15);
+        goalPos.copy(localDriverOffset).applyMatrix4(vehicle.matrixWorld);
 
-        case 'driver':
-          // Cockpit POV looking forward
-          const localDriverOffset = new THREE.Vector3(0, 0.72, -0.15);
-          goalPos.copy(localDriverOffset).applyMatrix4(vehicle.matrixWorld);
+        const localDriverTarget = new THREE.Vector3(0, 0.58, -15.0);
+        goalTarget.copy(localDriverTarget).applyMatrix4(vehicle.matrixWorld);
+        lerpSpeed = 0.22; // very responsive
+        break;
 
-          const localDriverTarget = new THREE.Vector3(0, 0.58, -15.0);
-          goalTarget.copy(localDriverTarget).applyMatrix4(vehicle.matrixWorld);
-          lerpSpeed = 0.22; // very responsive
-          break;
-
-        case 'orbit':
-          // Unlocked Orbit controls
-          goalTarget.copy(carPos).add(new THREE.Vector3(0, 1.0, 0));
-          break;
-
-        default:
-          break;
+      case 'drone': {
+        // Drone view flies high above, framing the skyline composition beautifully
+        const droneDist = 32.0;
+        const droneHeight = 40.0;
+        goalPos.set(
+          carPos.x - Math.sin(carYaw) * droneDist,
+          carPos.y + droneHeight,
+          carPos.z - Math.cos(carYaw) * droneDist
+        );
+        // Look ahead of vehicle to tilt camera down slightly and show the massive skyline
+        const localDroneTarget = new THREE.Vector3(0, 1.8, -6.5);
+        goalTarget.copy(localDroneTarget).applyMatrix4(vehicle.matrixWorld);
+        lerpSpeed = 0.025; // smooth majestic flight lag
+        break;
       }
+
+      case 'orbit':
+        // Unlocked Orbit controls
+        goalTarget.copy(carPos).add(new THREE.Vector3(0, 1.0, 0));
+        break;
+
+      default:
+        break;
     }
 
     // 3. APPLY INTERPOLATION & SHAKE TO CAMERA
@@ -159,8 +202,8 @@ export const CameraManager: React.FC = () => {
       currentGoalPos.current.lerp(goalPos, lerpSpeed);
       camera.position.copy(currentGoalPos.current);
 
-      // Speed-dependent camera shake (disabled in Auto Explore)
-      if (!autoExploreActive && (activeMode === 'chase' || activeMode === 'follow') && speed > 20) {
+      // Speed-dependent camera shake (disabled in Auto Explore or Drone view)
+      if (!autoExploreActive && activeMode !== 'drone' && (activeMode === 'chase' || activeMode === 'follow') && speed > 20) {
         const shakeScale = (speed / 170) * (boostActive ? 0.08 : 0.035);
         camera.position.x += (Math.random() - 0.5) * shakeScale;
         camera.position.y += (Math.random() - 0.5) * shakeScale;
@@ -169,7 +212,28 @@ export const CameraManager: React.FC = () => {
 
       // Lerp look-at target
       targetLookAt.current.lerp(goalTarget, lerpSpeed + 0.02);
+
+      // Apply banking tilt (roll) based on steering for the Drone camera
+      if (activeMode === 'drone') {
+        const steerFactor = inputs.left ? 0.06 : (inputs.right ? -0.06 : 0);
+        const forward = new THREE.Vector3().subVectors(targetLookAt.current, camera.position).normalize();
+        const targetUp = new THREE.Vector3(0, 1, 0).applyAxisAngle(forward, steerFactor);
+        currentUp.current.lerp(targetUp, dt * 5);
+        camera.up.copy(currentUp.current);
+      } else {
+        currentUp.current.lerp(new THREE.Vector3(0, 1, 0), dt * 5);
+        camera.up.copy(currentUp.current);
+      }
+
       camera.lookAt(targetLookAt.current);
+    }
+
+    // 4. SMOOTH INTERPOLATION FOR FIELD OF VIEW (Wide cinematic FOV in Drone view)
+    const targetFov = activeMode === 'drone' ? 78 : 60;
+    const persCam = camera as THREE.PerspectiveCamera;
+    if (persCam.fov !== undefined && Math.abs(persCam.fov - targetFov) > 0.05) {
+      persCam.fov = THREE.MathUtils.lerp(persCam.fov, targetFov, dt * 4);
+      persCam.updateProjectionMatrix();
     }
   });
 

@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, type ReactNode } from 'reac
 
 export type SceneState = 'loading' | 'intro' | 'explore';
 export type QualityMode = 'low' | 'high';
-export type CameraMode = 'follow' | 'chase' | 'driver' | 'orbit' | 'cinematic';
+export type CameraMode = 'follow' | 'chase' | 'driver' | 'orbit' | 'cinematic' | 'drone';
 
 export interface DrivingInputs {
   forward: boolean;

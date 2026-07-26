@@ -31,7 +31,7 @@ export const useKeyboard = () => {
         
         // Cycle cameras: follow -> chase -> driver -> orbit -> follow (skip cinematic during roam)
         setCameraMode((current) => {
-          const order: typeof current[] = ['follow', 'chase', 'driver', 'orbit'];
+          const order: typeof current[] = ['follow', 'chase', 'driver', 'orbit', 'drone'];
           const idx = order.indexOf(current);
           const nextIdx = (idx + 1) % order.length;
           return order[nextIdx];

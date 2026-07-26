@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useExperience } from '../context/ExperienceContext';
+import { useExperience, type CameraMode } from '../context/ExperienceContext';
 import { Shield, Compass } from 'lucide-react';
+import * as THREE from 'three';
+import { WAYPOINTS } from './City/Vehicle';
 
 interface TourDistrictData {
   title: string;
@@ -111,6 +113,15 @@ const DISTRICT_DATA: Record<number, TourDistrictData> = {
   }
 };
 
+const cameraOptions: { mode: CameraMode; label: string }[] = [
+  { mode: 'follow', label: 'Follow' },
+  { mode: 'chase', label: 'Chase' },
+  { mode: 'cinematic', label: 'Cinematic' },
+  { mode: 'drone', label: 'Drone' },
+  { mode: 'driver', label: 'Dashboard' },
+  { mode: 'orbit', label: 'Orbit' },
+];
+
 export const HUD: React.FC = () => {
   const {
     sceneState,
@@ -145,6 +156,45 @@ export const HUD: React.FC = () => {
   const [joystickActive, setJoystickActive] = useState(false);
   const [joystickPos, setJoystickPos] = useState({ x: 0, y: 0 });
   const joystickStart = useRef({ x: 0, y: 0 });
+
+  // Determine currently active camera mode for UI highlight (including Auto Explore transition cuts)
+  let activeHighlight: CameraMode = cameraMode;
+  if (autoExploreActive) {
+    if (autoExploreState === 'paused') {
+      activeHighlight = 'cinematic';
+    } else if (autoExploreIndex >= 0 && autoExploreIndex < WAYPOINTS.length) {
+      const prevWaypoint = WAYPOINTS[autoExploreIndex === 0 ? 0 : autoExploreIndex - 1];
+      const nextWaypoint = WAYPOINTS[autoExploreIndex];
+      const start2D = new THREE.Vector2(prevWaypoint.position.x, prevWaypoint.position.z);
+      const end2D = new THREE.Vector2(nextWaypoint.position.x, nextWaypoint.position.z);
+      const car2D = new THREE.Vector2(carCoords.x, carCoords.z);
+      const totalLen = start2D.distanceTo(end2D);
+      let t = 0;
+      if (totalLen > 0.001) {
+        const toCar = car2D.clone().sub(start2D);
+        const lineDir = end2D.clone().sub(start2D).normalize();
+        t = THREE.MathUtils.clamp(toCar.dot(lineDir) / totalLen, 0, 1);
+      }
+      if (totalLen > 35) {
+        if (t < 0.25) activeHighlight = 'follow';
+        else if (t < 0.7) activeHighlight = 'drone';
+        else activeHighlight = 'chase';
+      } else {
+        activeHighlight = 'follow';
+      }
+    }
+  }
+
+  const selectCameraMode = (mode: CameraMode) => {
+    if (autoExploreActive) {
+      setAutoExploreActive(false);
+      setAutoExploreIndex(-1);
+      setAutoExploreState('driving');
+    }
+    setCameraMode(mode);
+    const win = window as any;
+    if (win.synthClick) win.synthClick();
+  };
 
   useEffect(() => {
     // 1. FPS Tracker loop
@@ -235,17 +285,6 @@ export const HUD: React.FC = () => {
       left: false,
       right: false,
     }));
-  };
-
-  // Switch camera trigger
-  const handleCameraCycle = () => {
-    const order: typeof cameraMode[] = ['follow', 'chase', 'driver', 'orbit'];
-    const idx = order.indexOf(cameraMode);
-    const nextIdx = (idx + 1) % order.length;
-    setCameraMode(order[nextIdx]);
-    
-    const win = window as any;
-    if (win.synthClick) win.synthClick();
   };
 
   // Toggle Auto Explore Mode
@@ -411,6 +450,53 @@ export const HUD: React.FC = () => {
         </div>
       )}
 
+      {/* 2.75. CAMERA MODE MENU */}
+      {sceneState === 'explore' && (
+        <div className="absolute right-4 md:right-8 bottom-[180px] md:bottom-[170px] pointer-events-auto z-50 flex flex-col items-end gap-2 animate-slide-in">
+          <div className="glass-panel p-3 border-[#00f0ff]/25 bg-black/85 shadow-[0_0_20px_rgba(0,240,255,0.15)] w-[240px] flex flex-col gap-2 relative group/panel transition-all duration-300 hover:border-[#00f0ff]/50">
+            {/* Corner Cyberpunk Details */}
+            <div className="absolute -top-px -left-px w-2.5 h-2.5 border-t border-l border-[#00f0ff]" />
+            <div className="absolute -bottom-px -right-px w-2.5 h-2.5 border-b border-r border-[#00f0ff]" />
+            
+            {/* Tooltip Description on hover */}
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1 bg-black/90 border border-[#00f0ff]/40 rounded text-[9px] font-mono text-[#00f0ff] opacity-0 group-hover/panel:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap shadow-[0_0_8px_rgba(0,240,255,0.25)] tracking-wider z-[60]">
+              Change Camera View
+            </div>
+
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-[#00f0ff]/20 pb-1.5">
+              <div className="flex items-center gap-1.5">
+                <span role="img" aria-label="camera" className="text-xs">📷</span>
+                <span className="font-['Orbitron'] text-[10px] font-extrabold tracking-[0.2em] text-[#00f0ff]">
+                  CAMERA MODE
+                </span>
+              </div>
+              <span className="font-mono text-[8px] text-[#00f0ff]/50">ACTIVE</span>
+            </div>
+
+            {/* Buttons Grid */}
+            <div className="grid grid-cols-2 gap-1.5">
+              {cameraOptions.map((opt) => {
+                const isActive = activeHighlight === opt.mode;
+                return (
+                  <button
+                    key={opt.mode}
+                    onClick={() => selectCameraMode(opt.mode)}
+                    className={`px-2 py-1.5 border rounded font-['Orbitron'] text-[9px] font-bold tracking-wider transition-all duration-200 text-center uppercase select-none ${
+                      isActive
+                        ? 'bg-[#ff007f]/20 border-[#ff007f] text-[#ff007f] shadow-[0_0_10px_rgba(255,0,127,0.3)] font-black'
+                        : 'bg-[#00f0ff]/5 border-[#00f0ff]/20 text-[#00f0ff]/80 hover:bg-[#00f0ff]/15 hover:border-[#00f0ff] hover:text-[#00f0ff] hover:scale-[1.03]'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 3. BOTTOM TELEMETRY HUDS */}
       <div className="w-full flex justify-between items-end gap-6">
         
@@ -500,12 +586,6 @@ export const HUD: React.FC = () => {
           </div>
 
           <div className="w-full flex justify-center gap-3 mt-4 pointer-events-auto pb-4">
-            <button
-              onClick={handleCameraCycle}
-              className="px-3 py-1.5 rounded glass-panel border border-[#00f0ff]/20 text-[9px] font-['Orbitron'] font-bold text-[#00f0ff] select-none"
-            >
-              CAM: {cameraMode.toUpperCase()}
-            </button>
             <button
               onTouchStart={() => setInputs((p) => ({ ...p, boost: true }))}
               onTouchEnd={() => setInputs((p) => ({ ...p, boost: false }))}

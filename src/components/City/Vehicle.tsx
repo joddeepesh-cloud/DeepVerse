@@ -47,7 +47,7 @@ const fract = (val: number): number => {
   return val - Math.floor(val);
 };
 
-const WAYPOINTS = [
+export const WAYPOINTS = [
   { name: 'Welcome Plaza', position: new THREE.Vector3(0, 0.1, 30) },
   { name: 'About Me', position: new THREE.Vector3(0, 0.1, 75) },
   { name: 'Skills Street', position: new THREE.Vector3(-40, 0.1, 80) },
