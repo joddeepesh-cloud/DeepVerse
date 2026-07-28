@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, type ReactNode } from 'reac
 export type SceneState = 'loading' | 'intro' | 'explore';
 export type QualityMode = 'low' | 'high';
 export type CameraMode = 'follow' | 'chase' | 'driver' | 'orbit' | 'cinematic' | 'drone';
+export type DeviceType = 'mobile' | 'tablet' | 'desktop';
 
 export interface DrivingInputs {
   forward: boolean;
@@ -31,6 +32,7 @@ interface ExperienceContextType {
   autoExploreState: 'driving' | 'paused' | 'manually_paused' | 'finished';
   autoExploreDirection: 'forward' | 'backward';
   themeMode: 'day' | 'night';
+  deviceType: DeviceType;
   setLoadingProgress: (progress: number) => void;
   setIsLoaded: (isLoaded: boolean) => void;
   setSceneState: (state: SceneState) => void;
@@ -65,7 +67,12 @@ export const ExperienceProvider: React.FC<{ children: ReactNode }> = ({ children
   const [loadingProgress, setLoadingProgress] = useState<number>(0);
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
   const [sceneState, setSceneState] = useState<SceneState>('loading');
-  const [quality, setQuality] = useState<QualityMode>('high');
+  const [quality, setQuality] = useState<QualityMode>(() => {
+    if (typeof window !== 'undefined') {
+      if (window.innerWidth < 1024) return 'low';
+    }
+    return 'high';
+  });
   const [cameraMode, setCameraMode] = useState<CameraMode>('cinematic'); // starts circling during introduction
   const [speed, setSpeed] = useState<number>(0);
   const [rpm, setRpm] = useState<number>(800); // idling rpm
@@ -77,6 +84,23 @@ export const ExperienceProvider: React.FC<{ children: ReactNode }> = ({ children
   const [autoExploreState, setAutoExploreState] = useState<'driving' | 'paused' | 'manually_paused' | 'finished'>('driving');
   const [autoExploreDirection, setAutoExploreDirection] = useState<'forward' | 'backward'>('forward');
   const [themeMode, setThemeMode] = useState<'day' | 'night'>('night');
+  const [deviceType, setDeviceType] = useState<DeviceType>('desktop');
+
+  React.useEffect(() => {
+    const handleResize = () => {
+      const width = window.innerWidth;
+      if (width < 768) {
+        setDeviceType('mobile');
+      } else if (width >= 768 && width < 1024) {
+        setDeviceType('tablet');
+      } else {
+        setDeviceType('desktop');
+      }
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   return (
     <ExperienceContext.Provider
@@ -96,6 +120,7 @@ export const ExperienceProvider: React.FC<{ children: ReactNode }> = ({ children
         autoExploreState,
         autoExploreDirection,
         themeMode,
+        deviceType,
         setLoadingProgress,
         setIsLoaded,
         setSceneState,

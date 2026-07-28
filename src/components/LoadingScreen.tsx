@@ -49,7 +49,7 @@ export const LoadingScreen: React.FC = () => {
         <motion.div
           initial={{ opacity: 1 }}
           exit={{ opacity: 0, transition: { duration: 1.2, ease: 'easeInOut' } }}
-          className="absolute inset-0 z-50 flex flex-col items-center justify-between p-8 md:p-16 bg-[#02020a] scanline-effect"
+          className="absolute inset-0 z-50 flex flex-col items-center justify-between p-4 md:p-16 bg-[#02020a] scanline-effect overflow-y-auto md:overflow-hidden"
         >
           {/* Header */}
           <div className="w-full max-w-5xl flex items-center justify-between border-b border-[#00f0ff]/20 pb-4">
@@ -72,11 +72,11 @@ export const LoadingScreen: React.FC = () => {
           </div>
 
           {/* Diagnostic Console Panel (Centered) */}
-          <div className="w-full max-w-5xl flex-1 flex flex-col md:flex-row gap-6 my-8 items-stretch justify-center">
+          <div className="w-full max-w-5xl flex-1 flex flex-col md:flex-row gap-3 md:gap-6 my-2 md:my-8 items-stretch justify-center min-h-0">
             
             {/* Terminal Window */}
-            <div className="flex-1 glass-panel p-6 font-mono text-[10px] md:text-xs text-[#8f9bb3] overflow-hidden flex flex-col justify-end min-h-[220px]">
-              <div className="flex-1 overflow-y-auto pr-2 space-y-1.5 flex flex-col justify-end">
+            <div className="flex-1 glass-panel p-3 md:p-6 font-mono text-[9px] md:text-xs text-[#8f9bb3] overflow-hidden flex flex-col justify-end min-h-[100px] md:min-h-[220px]">
+              <div className="flex-1 overflow-y-auto pr-2 space-y-1 md:space-y-1.5 flex flex-col justify-end">
                 {consoleLogs.map((log, idx) => (
                   <motion.div
                     key={idx}
@@ -98,14 +98,14 @@ export const LoadingScreen: React.FC = () => {
             </div>
 
             {/* Quality and Systems Diagnostics */}
-            <div className="w-full md:w-[320px] flex flex-col gap-6 justify-between">
+            <div className="w-full md:w-[320px] flex flex-col gap-3 md:gap-6 justify-between">
               
               {/* Quality Settings Panel */}
-              <div className="glass-panel p-6 flex flex-col gap-4">
+              <div className="glass-panel p-3 md:p-6 flex flex-col gap-2 md:gap-4">
                 <h3 className="font-['Orbitron'] text-xs font-semibold tracking-wider text-[#00f0ff]">
                   GRAPHICS SPECIFICATION
                 </h3>
-                <p className="text-[11px] text-[#8f9bb3] leading-relaxed">
+                <p className="text-[10px] md:text-[11px] text-[#8f9bb3] leading-relaxed">
                   Choose cinematic realism (High spec with bloom & depth effects) or optimal responsiveness (Low spec).
                 </p>
                 <div className="flex gap-3 mt-2">
@@ -135,9 +135,9 @@ export const LoadingScreen: React.FC = () => {
               </div>
 
               {/* Status Percentage Panel */}
-              <div className="glass-panel p-6 flex flex-col items-center justify-center text-center gap-1">
-                <span className="font-['Orbitron'] text-xs tracking-widest text-[#8f9bb3]">LOADING BUFFER</span>
-                <span className="font-['Orbitron'] text-5xl font-extrabold tracking-tighter text-white glow-text-cyan">
+              <div className="glass-panel p-3 md:p-6 flex flex-col items-center justify-center text-center gap-0.5 md:gap-1">
+                <span className="font-['Orbitron'] text-[10px] md:text-xs tracking-widest text-[#8f9bb3]">LOADING BUFFER</span>
+                <span className="font-['Orbitron'] text-3xl md:text-5xl font-extrabold tracking-tighter text-white glow-text-cyan">
                   {loadingProgress}%
                 </span>
               </div>
@@ -145,7 +145,7 @@ export const LoadingScreen: React.FC = () => {
           </div>
 
           {/* Footer Action Area */}
-          <div className="w-full max-w-5xl flex flex-col items-center gap-6">
+          <div className="w-full max-w-5xl flex flex-col items-center gap-2 md:gap-6">
             
             {/* Progress Bar (Always visible during loading) */}
             <div className="w-full h-1 bg-[#12122b] rounded-full overflow-hidden relative border border-white/5">
@@ -183,7 +183,7 @@ export const LoadingScreen: React.FC = () => {
               )}
             </div>
 
-            <div className="font-mono text-[9px] text-[#4e5566] tracking-wider mt-2">
+            <div className="font-mono text-[8px] md:text-[9px] text-[#4e5566] tracking-wider mt-1 md:mt-2">
               DEEPVERSE MATRIX SYSTEM // ALL RIGHTS RESERVED © 2026
             </div>
           </div>

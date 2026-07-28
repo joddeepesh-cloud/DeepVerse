@@ -125,6 +125,7 @@ const cameraOptions: { mode: CameraMode; label: string }[] = [
 export const HUD: React.FC = () => {
   const {
     sceneState,
+    setSceneState,
     cameraMode,
     setCameraMode,
     speed,
@@ -141,7 +142,8 @@ export const HUD: React.FC = () => {
     setAutoExploreState,
     setAutoExploreDirection,
     themeMode,
-    setThemeMode
+    setThemeMode,
+    deviceType
   } = useExperience();
 
   // FPS and notification states
@@ -155,6 +157,7 @@ export const HUD: React.FC = () => {
   const [manualOpenDetailsIndex, setManualOpenDetailsIndex] = useState<number>(-1);
   const [discoveredDistricts, setDiscoveredDistricts] = useState<number[]>([]);
   const [finaleTime, setFinaleTime] = useState<number>(0);
+  const [showMobileTip, setShowMobileTip] = useState<boolean>(true);
 
   // Sync discovery state with auto-explore indexing
   useEffect(() => {
@@ -280,6 +283,26 @@ export const HUD: React.FC = () => {
     setAutoExploreIndex(1); // start at About Me
     setAutoExploreState('driving');
     setAutoExploreDirection('forward');
+    setCameraMode('follow');
+    setFinaleTime(0);
+    const win = window as any;
+    if (win.synthClick) win.synthClick();
+  };
+
+  const startMobileAutoExplore = () => {
+    setSceneState('explore');
+    setAutoExploreActive(true);
+    setAutoExploreIndex(1); // start at About Me
+    setAutoExploreState('driving');
+    setAutoExploreDirection('forward');
+    setCameraMode('follow');
+    setFinaleTime(0);
+    const win = window as any;
+    if (win.synthClick) win.synthClick();
+  };
+
+  const startMobileTouchDriving = () => {
+    setSceneState('explore');
     setCameraMode('follow');
     setFinaleTime(0);
     const win = window as any;
@@ -450,57 +473,94 @@ export const HUD: React.FC = () => {
             <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-[#00f0ff]" />
             <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-[#00f0ff]" />
 
-            <div className="flex flex-col gap-1.5 items-center">
-              <span role="img" aria-label="car" className="text-2xl animate-bounce">🚗</span>
-              <h2 className="font-['Orbitron'] text-lg md:text-xl font-black text-white tracking-[0.15em] uppercase mt-1">
-                Welcome to DeepVerse
-              </h2>
-              <div className="w-16 h-0.5 bg-gradient-to-r from-transparent via-[#00f0ff] to-transparent my-2" />
-            </div>
+            {deviceType === 'desktop' ? (
+              <>
+                <div className="flex flex-col gap-1.5 items-center">
+                  <span role="img" aria-label="car" className="text-2xl animate-bounce">🚗</span>
+                  <h2 className="font-['Orbitron'] text-lg md:text-xl font-black text-white tracking-[0.15em] uppercase mt-1">
+                    Welcome to DeepVerse
+                  </h2>
+                  <div className="w-16 h-0.5 bg-gradient-to-r from-transparent via-[#00f0ff] to-transparent my-2" />
+                </div>
 
-            <p className="font-mono text-xs text-[#00f0ff] leading-relaxed font-bold animate-pulse">
-              Press <span className="px-2 py-1 bg-[#00f0ff]/10 border border-[#00f0ff] rounded text-white font-sans text-sm mx-1 shadow-[0_0_8px_rgba(0,240,255,0.4)]">W</span> to start driving.
-            </p>
-            
-            <p className="font-mono text-[10px] text-[#8f9bb3] leading-relaxed">
-              Once you're moving, the full interface and controls will automatically appear.
-            </p>
+                <p className="font-mono text-xs text-[#00f0ff] leading-relaxed font-bold animate-pulse">
+                  Press <span className="px-2 py-1 bg-[#00f0ff]/10 border border-[#00f0ff] rounded text-white font-sans text-sm mx-1 shadow-[0_0_8px_rgba(0,240,255,0.4)]">W</span> to start driving.
+                </p>
+                
+                <p className="font-mono text-[10px] text-[#8f9bb3] leading-relaxed">
+                  Once you're moving, the full interface and controls will automatically appear.
+                </p>
 
-            <div className="border-t border-white/10 pt-4 mt-2">
-              <span className="font-['Orbitron'] text-[9px] font-black tracking-widest text-[#ff007f] block mb-3 uppercase">
-                Controls Preview
-              </span>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-left font-mono text-[10px] text-[#b0bacf] max-w-[320px] mx-auto">
-                <div className="flex items-center gap-2">
-                  <span className="text-[#00f0ff] font-bold w-12 text-right">⬆ W</span>
-                  <span className="text-white/80">➔ Accelerate</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[#00f0ff] font-bold w-12 text-right">⬇ S</span>
-                  <span className="text-white/80">➔ Reverse</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[#00f0ff] font-bold w-12 text-right">⬅ A</span>
-                  <span className="text-white/80">➔ Turn Left</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[#00f0ff] font-bold w-12 text-right">➡ D</span>
-                  <span className="text-white/80">➔ Turn Right</span>
-                </div>
-                <div className="flex items-center gap-2 sm:col-span-2 mt-1 border-t border-white/5 pt-2 flex-wrap justify-between">
-                  <div className="flex items-center gap-1">
-                    <span role="img" aria-label="camera" className="text-xs">📷</span>
-                    <span className="text-white/60">Camera</span>
-                    <span className="text-white/80">➔ Change view</span>
+                <div className="border-t border-white/10 pt-4 mt-2">
+                  <span className="font-['Orbitron'] text-[9px] font-black tracking-widest text-[#ff007f] block mb-3 uppercase">
+                    Controls Preview
+                  </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-left font-mono text-[10px] text-[#b0bacf] max-w-[320px] mx-auto">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[#00f0ff] font-bold w-12 text-right">⬆ W</span>
+                      <span className="text-white/80">➔ Accelerate</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[#00f0ff] font-bold w-12 text-right">⬇ S</span>
+                      <span className="text-white/80">➔ Reverse</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[#00f0ff] font-bold w-12 text-right">⬅ A</span>
+                      <span className="text-white/80">➔ Turn Left</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[#00f0ff] font-bold w-12 text-right">➡ D</span>
+                      <span className="text-white/80">➔ Turn Right</span>
+                    </div>
+                    <div className="flex items-center gap-2 sm:col-span-2 mt-1 border-t border-white/5 pt-2 flex-wrap justify-between">
+                      <div className="flex items-center gap-1">
+                        <span role="img" aria-label="camera" className="text-xs">📷</span>
+                        <span className="text-white/60">Camera</span>
+                        <span className="text-white/80">➔ Change view</span>
+                      </div>
+                      <div className="flex items-center gap-1 flex-nowrap">
+                        <span role="img" aria-label="compass" className="text-xs">🚀</span>
+                        <span className="text-white/60">Auto Tour</span>
+                        <span className="text-white/80">➔ Guided</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1 flex-nowrap">
-                    <span role="img" aria-label="compass" className="text-xs">🚀</span>
-                    <span className="text-white/60">Auto Tour</span>
-                    <span className="text-white/80">➔ Guided</span>
-                  </div>
                 </div>
-              </div>
-            </div>
+              </>
+            ) : (
+              <>
+                <div className="flex flex-col gap-1.5 items-center">
+                  <span role="img" aria-label="smartphone" className="text-2xl animate-bounce">📱</span>
+                  <h2 className="font-['Orbitron'] text-base md:text-xl font-black text-white tracking-[0.12em] uppercase mt-1">
+                    Welcome to DeepVerse
+                  </h2>
+                  <div className="w-16 h-0.5 bg-gradient-to-r from-transparent via-[#00f0ff] to-transparent my-1.5" />
+                </div>
+
+                <p className="font-mono text-[10px] md:text-xs text-[#8f9bb3] leading-relaxed max-w-xs mx-auto">
+                  For the best viewing experience on mobile and tablet devices, select one of the following:
+                </p>
+
+                <div className="flex flex-col gap-3 my-2 w-full max-w-[280px] mx-auto pointer-events-auto">
+                  <button
+                    onClick={startMobileAutoExplore}
+                    className="w-full font-['Orbitron'] text-xs font-black tracking-wider text-black bg-[#00f0ff] border border-[#00f0ff] hover:bg-[#00f0ff]/80 px-6 py-3.5 rounded shadow-[0_0_15px_rgba(0,240,255,0.4)] flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer"
+                  >
+                    🚀 START AUTO EXPLORE
+                  </button>
+                  <button
+                    onClick={startMobileTouchDriving}
+                    className="w-full font-['Orbitron'] text-[10px] font-bold tracking-widest text-[#ff007f] bg-transparent border border-[#ff007f] hover:bg-[#ff007f]/10 px-6 py-3 rounded active:scale-95 transition-all cursor-pointer"
+                  >
+                    🎮 ENABLE TOUCH DRIVING
+                  </button>
+                </div>
+
+                <div className="border-t border-white/5 pt-3 mt-1.5 text-[9px] font-mono text-white/50 leading-relaxed max-w-xs mx-auto">
+                  Desktop users can enjoy the complete keyboard driving experience.
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
@@ -977,6 +1037,27 @@ export const HUD: React.FC = () => {
       )}
       
       </>)}
+
+      {/* Mobile/Tablet Tip Notification */}
+      {showMobileTip && (deviceType === 'mobile' || deviceType === 'tablet') && sceneState === 'explore' && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 w-[90%] max-w-[380px] glass-panel p-4 border-[#00f0ff]/30 bg-black/90 shadow-[0_0_20px_rgba(0,240,255,0.2)] pointer-events-auto z-[60] flex items-start gap-3 animate-slide-in">
+          <span className="text-lg">💡</span>
+          <div className="flex-1 flex flex-col gap-1">
+            <span className="font-['Orbitron'] text-[9px] font-black tracking-widest text-[#00f0ff] uppercase">
+              💡 Tip
+            </span>
+            <p className="font-mono text-[9px] text-[#b0bacf] leading-relaxed">
+              For the complete interactive driving experience, visit DeepVerse on a laptop or desktop. Auto Explore lets you enjoy the full city from any device.
+            </p>
+          </div>
+          <button
+            onClick={() => setShowMobileTip(false)}
+            className="text-white/40 hover:text-white font-mono text-[10px] px-1 hover:text-[#ff007f] transition-all cursor-pointer"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       {/* Thank You overlay panel inside Grand Finale */}
       {autoExploreActive && autoExploreState === 'finished' && finaleTime >= 2.5 && (
