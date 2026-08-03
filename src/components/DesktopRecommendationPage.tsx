@@ -16,7 +16,7 @@ export const DesktopRecommendationPage: React.FC<DesktopRecommendationPageProps>
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-[#00f0ff]/5 blur-[120px] pointer-events-none" />
 
       {/* Main card panel */}
-      <div className="glass-panel p-6 sm:p-10 border-[#00f0ff]/30 bg-black/90 shadow-[0_0_50px_rgba(0,240,255,0.15)] max-w-md w-full relative overflow-hidden animate-slide-in flex flex-col gap-6 text-center border">
+      <div className="glass-panel p-8 sm:p-12 border-[#00f0ff]/35 bg-black/90 shadow-[0_0_60px_rgba(0,240,255,0.25)] max-w-md w-[92%] sm:w-[88%] relative overflow-hidden animate-slide-in flex flex-col gap-8 text-center border">
         {/* Cyberpunk corner details */}
         <div className="absolute top-0 left-0 w-5 h-5 border-t-2 border-l-2 border-[#00f0ff]" />
         <div className="absolute top-0 right-0 w-5 h-5 border-t-2 border-r-2 border-[#00f0ff]" />
@@ -24,34 +24,34 @@ export const DesktopRecommendationPage: React.FC<DesktopRecommendationPageProps>
         <div className="absolute bottom-0 right-0 w-5 h-5 border-b-2 border-r-2 border-[#00f0ff]" />
 
         <div className="flex flex-col gap-1 items-center">
-          <div className="relative w-16 h-16 flex items-center justify-center mb-1">
+          <div className="relative w-20 h-20 flex items-center justify-center mb-1">
             {/* Pulsing ring */}
             <div className="absolute inset-0 border border-[#00f0ff]/20 rounded-full animate-ping opacity-45" />
-            <Monitor className="w-10 h-10 text-[#00f0ff] drop-shadow-[0_0_8px_rgba(0,240,255,0.7)]" />
+            <Monitor className="w-12 h-12 text-[#00f0ff] drop-shadow-[0_0_8px_rgba(0,240,255,0.7)]" />
           </div>
-          <h1 className="font-['Orbitron'] text-xl sm:text-2xl font-black text-white tracking-[0.2em] uppercase mt-2">
+          <h1 className="font-['Orbitron'] text-2xl sm:text-3xl font-black text-white tracking-[0.2em] uppercase mt-2">
             DeepVerse Portfolio
           </h1>
           <div className="w-24 h-0.5 bg-gradient-to-r from-transparent via-[#ff007f] to-transparent my-2" />
         </div>
 
-        <div className="flex flex-col gap-4 text-left font-mono">
-          <div className="border-l-2 border-[#ff007f] pl-3 py-1 bg-[#ff007f]/5">
-            <p className="text-white text-xs sm:text-sm font-bold leading-relaxed uppercase tracking-wider text-[#ff007f]">
+        <div className="flex flex-col gap-5 text-left font-mono">
+          <div className="border-l-2 border-[#ff007f] pl-4 py-1.5 bg-[#ff007f]/5">
+            <p className="text-white text-sm sm:text-base font-bold leading-relaxed uppercase tracking-wider text-[#ff007f]">
               This portfolio is designed for desktop for the best experience.
             </p>
           </div>
 
-          <p className="text-[#8f9bb3] text-[11px] sm:text-xs leading-relaxed uppercase tracking-wide">
+          <p className="text-[#8f9bb3] text-xs sm:text-sm leading-relaxed uppercase tracking-wide">
             Please open this website on a PC/Laptop or enable Desktop Site in your browser.
           </p>
         </div>
 
         {/* Cyberpunk Action Buttons */}
-        <div className="flex flex-col gap-3.5 w-full mt-4">
+        <div className="flex flex-col gap-5 w-full mt-4">
           <button
             onClick={() => setShowInstructions(true)}
-            className="w-full py-4 px-6 rounded-md font-['Orbitron'] font-black text-xs tracking-[0.15em] text-[#00f0ff] bg-[#00f0ff]/10 border-2 border-[#00f0ff] hover:bg-[#00f0ff]/20 hover:text-white transition-all cursor-pointer shadow-[0_0_20px_rgba(0,240,255,0.25)] uppercase flex items-center justify-center gap-2"
+            className="w-full py-4.5 px-8 rounded-md font-['Orbitron'] font-black text-sm tracking-[0.15em] text-[#00f0ff] bg-[#00f0ff]/10 border-2 border-[#00f0ff] hover:bg-[#00f0ff]/20 hover:text-white transition-all cursor-pointer shadow-[0_0_20px_rgba(0,240,255,0.25)] uppercase flex items-center justify-center gap-2"
           >
             <HelpCircle className="w-4 h-4" />
             Desktop Mode Guide
@@ -59,7 +59,7 @@ export const DesktopRecommendationPage: React.FC<DesktopRecommendationPageProps>
 
           <button
             onClick={onContinue}
-            className="w-full py-3 px-6 rounded-md font-['Orbitron'] font-black text-[10px] tracking-widest text-[#8f9bb3] hover:text-[#ff007f] bg-transparent border border-white/10 hover:border-[#ff007f]/40 hover:bg-[#ff007f]/5 active:scale-95 transition-all cursor-pointer uppercase flex items-center justify-center gap-1.5"
+            className="w-full py-4 px-8 rounded-md font-['Orbitron'] font-black text-xs sm:text-sm tracking-widest text-[#8f9bb3] hover:text-[#ff007f] bg-transparent border border-white/10 hover:border-[#ff007f]/40 hover:bg-[#ff007f]/5 active:scale-95 transition-all cursor-pointer uppercase flex items-center justify-center gap-1.5"
           >
             <Smartphone className="w-3.5 h-3.5" />
             Continue Anyway
@@ -78,13 +78,13 @@ export const DesktopRecommendationPage: React.FC<DesktopRecommendationPageProps>
             <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-[#ff007f]" />
 
             <div className="flex justify-between items-center border-b border-white/10 pb-2">
-              <span className="font-['Orbitron'] text-xs sm:text-sm font-black text-[#ff007f] tracking-widest uppercase flex items-center gap-2">
+              <span className="font-['Orbitron'] text-sm sm:text-base font-black text-[#ff007f] tracking-widest uppercase flex items-center gap-2">
                 <Info className="w-4 h-4" />
                 HOW TO ENABLE DESKTOP SITE
               </span>
             </div>
 
-            <div className="flex flex-col gap-4 font-mono text-[11px] sm:text-xs text-[#8f9bb3]">
+            <div className="flex flex-col gap-4 font-mono text-xs sm:text-sm text-[#8f9bb3]">
               <div className="flex flex-col gap-1">
                 <span className="text-white font-bold tracking-wider text-[#00f0ff]">🌐 SAFARI (iOS)</span>
                 <p className="leading-relaxed">
@@ -106,7 +106,7 @@ export const DesktopRecommendationPage: React.FC<DesktopRecommendationPageProps>
 
             <button
               onClick={() => setShowInstructions(false)}
-              className="mt-2 py-3 px-6 text-center bg-[#ff007f]/10 border border-[#ff007f]/40 hover:border-[#ff007f] text-[#ff007f] font-['Orbitron'] font-black text-[10px] tracking-widest rounded transition-all cursor-pointer uppercase active:scale-95"
+              className="mt-2 py-3.5 px-8 text-center bg-[#ff007f]/10 border border-[#ff007f]/40 hover:border-[#ff007f] text-[#ff007f] font-['Orbitron'] font-black text-xs sm:text-sm tracking-widest rounded transition-all cursor-pointer uppercase active:scale-95"
             >
               Close
             </button>

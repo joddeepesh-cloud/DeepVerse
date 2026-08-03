@@ -146,6 +146,8 @@ export const HUD: React.FC = () => {
     deviceType
   } = useExperience();
 
+  const isMobile = deviceType === 'mobile' || (typeof window !== 'undefined' && window.innerWidth < 768);
+
   // FPS and notification states
   const [fps, setFps] = useState<number>(60);
   const [showWelcome, setShowWelcome] = useState<boolean>(false);
@@ -569,13 +571,13 @@ export const HUD: React.FC = () => {
       <div className="w-full flex flex-col md:flex-row justify-between items-stretch md:items-start gap-4">
         
         {/* Mission Status Widget */}
-        <div className="glass-panel px-4 py-3 border-[#00f0ff]/20 flex items-center gap-3">
-          <Shield className="w-4 h-4 text-[#00f0ff] animate-pulse" />
-          <div className="flex flex-col">
-            <span className="font-['Orbitron'] text-[10px] font-extrabold tracking-widest text-[#00f0ff]">
+        <div className={`glass-panel ${isMobile ? 'px-5 py-4 border-[#00f0ff]/35 shadow-[0_0_20px_rgba(0,240,255,0.15)]' : 'px-4 py-3 border-[#00f0ff]/20'} flex items-center gap-3`}>
+          <Shield className={`w-4 h-4 ${isMobile ? 'w-5.5 h-5.5' : ''} text-[#00f0ff] animate-pulse`} />
+          <div className="flex flex-col text-left">
+            <span className={`font-['Orbitron'] ${isMobile ? 'text-[12px] sm:text-xs' : 'text-[10px]'} font-extrabold tracking-widest text-[#00f0ff]`}>
               MISSION OBJECTIVE
             </span>
-            <span className="font-mono text-xs text-white uppercase tracking-wider mt-0.5">
+            <span className={`font-mono ${isMobile ? 'text-xs sm:text-sm' : 'text-[11px]'} text-white uppercase tracking-wider mt-0.5`}>
               {sceneState === 'intro' 
                 ? 'SYSTEM BOOT ACTIVE' 
                 : autoExploreActive
@@ -589,11 +591,11 @@ export const HUD: React.FC = () => {
 
         {/* Large Centered Auto Explore Button / Autopilot Control Bar */}
         {sceneState === 'explore' && (
-          <div className="pointer-events-auto flex items-center gap-2 bg-black/80 border border-[#00f0ff]/20 p-1.5 rounded shadow-[0_0_20px_rgba(0,240,255,0.15)]">
+          <div className={`pointer-events-auto flex items-center ${isMobile ? 'gap-3 p-2 bg-black/90 shadow-[0_0_25px_rgba(0,240,255,0.25)] border-[#00f0ff]/35' : 'gap-2 bg-black/80 border border-[#00f0ff]/20 p-1.5'} rounded`}>
             {!autoExploreActive ? (
               <button
                 onClick={handleAutoExploreToggle}
-                className="px-5 py-2.5 bg-[#00f0ff]/10 border border-[#00f0ff]/40 hover:bg-[#00f0ff]/25 hover:scale-105 text-[#00f0ff] font-['Orbitron'] text-xs font-black tracking-[0.2em] rounded transition-all duration-300 flex items-center gap-2 shadow-[0_0_10px_rgba(0,240,255,0.1)]"
+                className={`px-5 py-2.5 ${isMobile ? 'py-3.5 px-6 text-xs sm:text-sm tracking-[0.22em]' : 'text-xs tracking-[0.2em]'} bg-[#00f0ff]/10 border border-[#00f0ff]/40 hover:bg-[#00f0ff]/25 hover:scale-105 text-[#00f0ff] font-['Orbitron'] font-black rounded transition-all duration-300 flex items-center gap-2 shadow-[0_0_10px_rgba(0,240,255,0.1)]`}
               >
                 <Compass className="w-3.5 h-3.5 text-[#00f0ff]" />
                 AUTO EXPLORE
@@ -609,7 +611,7 @@ export const HUD: React.FC = () => {
                   onClick={handlePrevDistrict}
                   title="Previous District"
                   disabled={autoExploreIndex <= 1 && (autoExploreState === 'paused' || autoExploreState === 'manually_paused')}
-                  className="px-3 py-2 bg-[#00f0ff]/5 hover:bg-[#00f0ff]/20 border border-[#00f0ff]/30 hover:border-[#00f0ff] disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:border-[#00f0ff]/30 text-[#00f0ff] font-bold text-xs rounded transition-all select-none flex items-center justify-center gap-1.5 min-h-[32px]"
+                  className={`px-3 py-2 ${isMobile ? 'py-3 px-4.5 text-xs sm:text-sm min-h-[44px]' : 'text-xs min-h-[32px]'} bg-[#00f0ff]/5 hover:bg-[#00f0ff]/20 border border-[#00f0ff]/30 hover:border-[#00f0ff] disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:border-[#00f0ff]/30 text-[#00f0ff] font-bold rounded transition-all select-none flex items-center justify-center gap-1.5`}
                 >
                   ⏮ <span className="hidden sm:inline font-['Orbitron'] text-[9px] tracking-wider">PREV</span>
                 </button>
@@ -618,7 +620,7 @@ export const HUD: React.FC = () => {
                   <button
                     onClick={handlePauseTour}
                     title="Pause Tour"
-                    className="px-4 py-2 bg-[#ffaa00]/10 hover:bg-[#ffaa00]/25 border border-[#ffaa00]/40 hover:border-[#ffaa00] text-[#ffaa00] font-bold text-xs rounded transition-all select-none flex items-center justify-center gap-1.5 min-h-[32px]"
+                    className={`px-4 py-2 ${isMobile ? 'py-3 px-5.5 text-xs sm:text-sm min-h-[44px]' : 'text-xs min-h-[32px]'} bg-[#ffaa00]/10 hover:bg-[#ffaa00]/25 border border-[#ffaa00]/40 hover:border-[#ffaa00] text-[#ffaa00] font-bold rounded transition-all select-none flex items-center justify-center gap-1.5`}
                   >
                     ⏸ <span className="hidden sm:inline font-['Orbitron'] text-[9px] tracking-wider">PAUSE</span>
                   </button>
@@ -626,7 +628,7 @@ export const HUD: React.FC = () => {
                   <button
                     onClick={handleResumeTour}
                     title="Resume Tour"
-                    className="px-4 py-2 bg-[#00f0ff]/10 hover:bg-[#00f0ff]/25 border border-[#00f0ff]/40 hover:border-[#00f0ff] text-[#00f0ff] font-bold text-xs rounded transition-all select-none flex items-center justify-center gap-1.5 min-h-[32px]"
+                    className={`px-4 py-2 ${isMobile ? 'py-3 px-5.5 text-xs sm:text-sm min-h-[44px]' : 'text-xs min-h-[32px]'} bg-[#00f0ff]/10 hover:bg-[#00f0ff]/25 border border-[#00f0ff]/40 hover:border-[#00f0ff] text-[#00f0ff] font-bold rounded transition-all select-none flex items-center justify-center gap-1.5`}
                   >
                     ▶️ <span className="hidden sm:inline font-['Orbitron'] text-[9px] tracking-wider">PLAY</span>
                   </button>
@@ -636,7 +638,7 @@ export const HUD: React.FC = () => {
                   onClick={handleNextDistrict}
                   title="Next District"
                   disabled={autoExploreIndex >= WAYPOINTS.length - 2}
-                  className="px-3 py-2 bg-[#00f0ff]/5 hover:bg-[#00f0ff]/20 border border-[#00f0ff]/30 hover:border-[#00f0ff] disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:border-[#00f0ff]/30 text-[#00f0ff] font-bold text-xs rounded transition-all select-none flex items-center justify-center gap-1.5 min-h-[32px]"
+                  className={`px-3 py-2 ${isMobile ? 'py-3 px-4.5 text-xs sm:text-sm min-h-[44px]' : 'text-xs min-h-[32px]'} bg-[#00f0ff]/5 hover:bg-[#00f0ff]/20 border border-[#00f0ff]/30 hover:border-[#00f0ff] disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:border-[#00f0ff]/30 text-[#00f0ff] font-bold rounded transition-all select-none flex items-center justify-center gap-1.5`}
                 >
                   <span className="hidden sm:inline font-['Orbitron'] text-[9px] tracking-wider">NEXT</span> ⏭
                 </button>
@@ -644,7 +646,7 @@ export const HUD: React.FC = () => {
                 <button
                   onClick={handleStopTour}
                   title="Stop Tour"
-                  className="px-3 py-2 bg-[#ff007f]/10 hover:bg-[#ff007f]/25 border border-[#ff007f]/40 hover:border-[#ff007f] text-[#ff007f] font-bold text-xs rounded transition-all select-none flex items-center justify-center gap-1.5 min-h-[32px]"
+                  className={`px-3 py-2 ${isMobile ? 'py-3 px-4.5 text-xs sm:text-sm min-h-[44px]' : 'text-xs min-h-[32px]'} bg-[#ff007f]/10 hover:bg-[#ff007f]/25 border border-[#ff007f]/40 hover:border-[#ff007f] text-[#ff007f] font-bold rounded transition-all select-none flex items-center justify-center gap-1.5`}
                 >
                   ⏹ <span className="hidden sm:inline font-['Orbitron'] text-[9px] tracking-wider">STOP</span>
                 </button>
@@ -793,13 +795,13 @@ export const HUD: React.FC = () => {
       {/* 2.5. DISTRICT INFO PANEL CARD */}
       {((autoExploreActive && (autoExploreState === 'paused' || autoExploreState === 'manually_paused') && currentDistrict) ||
         (!autoExploreActive && manualOpenDetailsIndex !== -1)) && (
-        <div className="absolute left-1/2 -translate-x-1/2 md:left-12 md:translate-x-0 top-1/2 -translate-y-1/2 pointer-events-auto z-50 max-w-[390px] w-[92%] sm:w-[85%] md:w-full">
-          <div className="glass-panel p-5 md:p-6 border-[#00f0ff]/40 bg-black/90 shadow-[0_0_30px_rgba(0,240,255,0.25)] relative overflow-y-auto max-h-[65vh] sm:max-h-[75vh] animate-slide-in flex flex-col gap-3">
+        <div className="absolute left-1/2 -translate-x-1/2 md:left-12 md:translate-x-0 top-1/2 -translate-y-1/2 pointer-events-auto z-50 max-w-[420px] w-[92%] sm:w-[88%] md:max-w-[390px] md:w-full">
+          <div className="glass-panel p-6 sm:p-8 md:p-6 border-[#00f0ff]/40 bg-black/90 shadow-[0_0_30px_rgba(0,240,255,0.25)] relative overflow-y-auto max-h-[65vh] sm:max-h-[75vh] animate-slide-in flex flex-col gap-4 sm:gap-6 md:gap-3">
             {/* Close button for manual exploration mode */}
             {!autoExploreActive && (
               <button
                 onClick={() => setManualOpenDetailsIndex(-1)}
-                className="absolute top-3 right-3 text-white/50 hover:text-white font-['Orbitron'] text-[10px] font-black tracking-wider transition-all border border-white/10 hover:border-[#ff007f] hover:text-[#ff007f] px-3 py-1.5 rounded bg-black/50 hover:bg-[#ff007f]/10 z-10"
+                className="absolute top-3 right-3 text-white/50 hover:text-white font-['Orbitron'] text-xs sm:text-sm md:text-[10px] font-black tracking-wider transition-all border border-white/10 hover:border-[#ff007f] hover:text-[#ff007f] px-4 py-2 sm:py-2.5 md:px-3 md:py-1.5 rounded bg-black/50 hover:bg-[#ff007f]/10 z-10"
               >
                 ✕ CLOSE
               </button>
@@ -812,14 +814,14 @@ export const HUD: React.FC = () => {
             <div className="absolute bottom-0 right-0 w-3.5 h-3.5 border-b-2 border-r-2 border-[#00f0ff]" />
 
             <div className="flex flex-col gap-1.5 text-left">
-              <span className="font-['Orbitron'] text-xs sm:text-sm md:text-[10px] font-extrabold tracking-[0.25em] text-[#ff007f]">
+              <span className="font-['Orbitron'] text-sm sm:text-base md:text-[10px] font-extrabold tracking-[0.25em] text-[#ff007f]">
                 {autoExploreActive ? currentDistrict.subtitle : DISTRICT_DATA[manualOpenDetailsIndex]?.subtitle}
               </span>
-              <h2 className="font-['Orbitron'] text-xl sm:text-2xl md:text-xl font-black text-white tracking-widest uppercase border-b border-[#00f0ff]/20 pb-3 mt-1">
+              <h2 className="font-['Orbitron'] text-2xl sm:text-3xl md:text-xl font-black text-white tracking-widest uppercase border-b border-[#00f0ff]/20 pb-3 mt-1">
                 {autoExploreActive ? currentDistrict.title : DISTRICT_DATA[manualOpenDetailsIndex]?.title}
               </h2>
               
-              <ul className="space-y-3.5 my-4 sm:my-5 font-mono text-xs sm:text-sm md:text-xs text-[#b0bacf] list-none pl-0">
+              <ul className="space-y-3.5 my-5 sm:my-6 md:my-5 font-mono text-sm sm:text-base md:text-xs text-[#b0bacf] list-none pl-0">
                 {(autoExploreActive ? currentDistrict.achievements : DISTRICT_DATA[manualOpenDetailsIndex]?.achievements || []).map((item, idx) => (
                   <li key={idx} className="flex items-start gap-2.5">
                     <span className="text-[#00f0ff] font-bold">❯</span>
@@ -834,7 +836,7 @@ export const HUD: React.FC = () => {
                   href={autoExploreActive ? currentDistrict.buttonUrl : DISTRICT_DATA[manualOpenDetailsIndex]?.buttonUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-2 block w-full text-center py-3.5 sm:py-4 bg-[#00f0ff]/15 hover:bg-[#00f0ff]/30 border border-[#00f0ff] rounded font-['Orbitron'] text-xs sm:text-sm md:text-[10px] font-black tracking-widest text-[#00f0ff] transition-all shadow-[0_0_12px_rgba(0,240,255,0.2)]"
+                  className="mt-2 block w-full text-center py-4 sm:py-5 md:py-3.5 bg-[#00f0ff]/15 hover:bg-[#00f0ff]/30 border border-[#00f0ff] rounded font-['Orbitron'] text-sm sm:text-base md:text-[10px] font-black tracking-widest text-[#00f0ff] transition-all shadow-[0_0_12px_rgba(0,240,255,0.2)]"
                 >
                   {autoExploreActive ? currentDistrict.buttonText : DISTRICT_DATA[manualOpenDetailsIndex]?.buttonText}
                 </a>

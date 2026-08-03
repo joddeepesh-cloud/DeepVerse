@@ -5,7 +5,8 @@ import { useAssetLoader } from '../hooks/useAssetLoader';
 import { Shield, Cpu, Activity, Play, Check } from 'lucide-react';
 
 export const LoadingScreen: React.FC = () => {
-  const { loadingProgress, isLoaded, sceneState, setSceneState, quality, setQuality } = useExperience();
+  const { loadingProgress, isLoaded, sceneState, setSceneState, quality, setQuality, deviceType } = useExperience();
+  const isMobile = deviceType === 'mobile' || (typeof window !== 'undefined' && window.innerWidth < 768);
   const { phase, synth } = useAssetLoader();
   const [consoleLogs, setConsoleLogs] = useState<string[]>([]);
   const [hasStarted, setHasStarted] = useState(false);
@@ -55,7 +56,7 @@ export const LoadingScreen: React.FC = () => {
           <div className="w-full max-w-5xl flex items-center justify-between border-b border-[#00f0ff]/20 pb-4">
             <div className="flex items-center gap-3">
               <Shield className="w-6 h-6 text-[#00f0ff] animate-pulse" />
-              <h1 className="font-['Orbitron'] text-sm md:text-lg font-bold tracking-[0.25em] text-[#00f0ff] glow-text-cyan">
+              <h1 className={`font-['Orbitron'] ${isMobile ? 'text-base sm:text-lg' : 'text-sm md:text-lg'} font-bold tracking-[0.25em] text-[#00f0ff] glow-text-cyan`}>
                 THE DEEPVERSE // SYSTEM BOOT
               </h1>
             </div>
@@ -75,8 +76,8 @@ export const LoadingScreen: React.FC = () => {
           <div className="w-full max-w-5xl flex-1 flex flex-col md:flex-row gap-3 md:gap-6 my-2 md:my-8 items-stretch justify-center min-h-0">
             
             {/* Terminal Window */}
-            <div className="flex-1 glass-panel p-3 md:p-6 font-mono text-[9px] md:text-xs text-[#8f9bb3] overflow-hidden flex flex-col justify-end min-h-[100px] md:min-h-[220px]">
-              <div className="flex-1 overflow-y-auto pr-2 space-y-1 md:space-y-1.5 flex flex-col justify-end">
+            <div className={`flex-1 glass-panel ${isMobile ? 'p-5 text-[11px] sm:text-xs' : 'p-3 md:p-6 text-[9px] md:text-xs'} font-mono text-[#8f9bb3] overflow-hidden flex flex-col justify-end min-h-[100px] md:min-h-[220px]`}>
+              <div className="flex-1 overflow-y-auto pr-2 space-y-1 md:space-y-1.5 flex flex-col justify-end text-left">
                 {consoleLogs.map((log, idx) => (
                   <motion.div
                     key={idx}
@@ -101,17 +102,17 @@ export const LoadingScreen: React.FC = () => {
             <div className="w-full md:w-[320px] flex flex-col gap-3 md:gap-6 justify-between">
               
               {/* Quality Settings Panel */}
-              <div className="glass-panel p-3 md:p-6 flex flex-col gap-2 md:gap-4">
-                <h3 className="font-['Orbitron'] text-xs font-semibold tracking-wider text-[#00f0ff]">
+              <div className="glass-panel p-4 sm:p-5 md:p-6 flex flex-col gap-3 sm:gap-4 md:gap-2">
+                <h3 className={`font-['Orbitron'] ${isMobile ? 'text-xs sm:text-sm' : 'text-xs'} font-semibold tracking-wider text-[#00f0ff] text-left`}>
                   GRAPHICS SPECIFICATION
                 </h3>
-                <p className="text-[10px] md:text-[11px] text-[#8f9bb3] leading-relaxed">
+                <p className={`text-[10px] md:text-[11px] ${isMobile ? 'text-xs leading-relaxed' : 'leading-relaxed'} text-[#8f9bb3] text-left`}>
                   Choose cinematic realism (High spec with bloom & depth effects) or optimal responsiveness (Low spec).
                 </p>
                 <div className="flex gap-3 mt-2">
                   <button
                     onClick={() => { synth.playClick(); setQuality('high'); }}
-                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded font-['Orbitron'] text-xs tracking-wider border transition-all duration-300 ${
+                    className={`flex-1 flex items-center justify-center gap-2 py-3 rounded font-['Orbitron'] ${isMobile ? 'text-xs sm:text-sm font-black' : 'text-xs'} tracking-wider border transition-all duration-300 ${
                       quality === 'high'
                         ? 'bg-[#00f0ff]/10 border-[#00f0ff] text-[#00f0ff] glow-border-cyan'
                         : 'border-[#4e5566] text-[#8f9bb3] hover:border-[#8f9bb3]'
@@ -122,7 +123,7 @@ export const LoadingScreen: React.FC = () => {
                   </button>
                   <button
                     onClick={() => { synth.playClick(); setQuality('low'); }}
-                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded font-['Orbitron'] text-xs tracking-wider border transition-all duration-300 ${
+                    className={`flex-1 flex items-center justify-center gap-2 py-3 rounded font-['Orbitron'] ${isMobile ? 'text-xs sm:text-sm font-black' : 'text-xs'} tracking-wider border transition-all duration-300 ${
                       quality === 'low'
                         ? 'bg-[#ff007f]/10 border-[#ff007f] text-[#ff007f]'
                         : 'border-[#4e5566] text-[#8f9bb3] hover:border-[#8f9bb3]'
@@ -135,9 +136,9 @@ export const LoadingScreen: React.FC = () => {
               </div>
 
               {/* Status Percentage Panel */}
-              <div className="glass-panel p-3 md:p-6 flex flex-col items-center justify-center text-center gap-0.5 md:gap-1">
-                <span className="font-['Orbitron'] text-[10px] md:text-xs tracking-widest text-[#8f9bb3]">LOADING BUFFER</span>
-                <span className="font-['Orbitron'] text-3xl md:text-5xl font-extrabold tracking-tighter text-white glow-text-cyan">
+              <div className="glass-panel p-4 sm:p-5 md:p-6 flex flex-col items-center justify-center text-center gap-1 sm:gap-2 md:gap-0.5">
+                <span className={`font-['Orbitron'] ${isMobile ? 'text-xs' : 'text-[10px] md:text-xs'} tracking-widest text-[#8f9bb3]`}>LOADING BUFFER</span>
+                <span className={`font-['Orbitron'] ${isMobile ? 'text-4xl sm:text-5xl' : 'text-3xl md:text-5xl'} font-extrabold tracking-tighter text-white glow-text-cyan`}>
                   {loadingProgress}%
                 </span>
               </div>
@@ -145,10 +146,10 @@ export const LoadingScreen: React.FC = () => {
           </div>
 
           {/* Footer Action Area */}
-          <div className="w-full max-w-5xl flex flex-col items-center gap-2 md:gap-6">
+          <div className="w-full max-w-5xl flex flex-col items-center gap-3 sm:gap-4 md:gap-2">
             
             {/* Progress Bar (Always visible during loading) */}
-            <div className="w-full h-1 bg-[#12122b] rounded-full overflow-hidden relative border border-white/5">
+            <div className={`w-full ${isMobile ? 'h-2' : 'h-1'} bg-[#12122b] rounded-full overflow-hidden relative border border-white/5`}>
               <motion.div
                 className="h-full bg-gradient-to-r from-[#9d00ff] via-[#00f0ff] to-[#ff007f]"
                 style={{ width: `${loadingProgress}%` }}
@@ -162,7 +163,7 @@ export const LoadingScreen: React.FC = () => {
             </div>
 
             {/* Launch Button Trigger */}
-            <div className="h-16 flex items-center justify-center w-full">
+            <div className="h-20 flex items-center justify-center w-full">
               {isLoaded ? (
                 <motion.button
                   onClick={handleEnterClick}
@@ -171,13 +172,13 @@ export const LoadingScreen: React.FC = () => {
                   animate={{ opacity: 1, scale: 1 }}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="font-['Orbitron'] font-extrabold text-sm md:text-base tracking-[0.3em] text-[#00f0ff] border border-[#00f0ff] px-10 py-4 rounded bg-[#00f0ff]/5 hover:bg-[#00f0ff]/20 hover:text-white transition-all duration-300 cursor-pointer flex items-center gap-3 shadow-[0_0_30px_rgba(0,240,255,0.2)] hover:shadow-[0_0_50px_rgba(0,240,255,0.5)]"
+                  className={`font-['Orbitron'] font-extrabold ${isMobile ? 'text-base py-4.5 px-12' : 'text-sm md:text-base px-10 py-4'} tracking-[0.3em] text-[#00f0ff] border border-[#00f0ff] rounded bg-[#00f0ff]/5 hover:bg-[#00f0ff]/20 hover:text-white transition-all duration-300 cursor-pointer flex items-center gap-3 shadow-[0_0_30px_rgba(0,240,255,0.2)] hover:shadow-[0_0_50px_rgba(0,240,255,0.5)]`}
                 >
                   <Play className="w-4 h-4 fill-current text-[#00f0ff]" />
                   ENTER THE DEEPVERSE
                 </motion.button>
               ) : (
-                <div className="font-['Orbitron'] text-xs md:text-sm tracking-[0.2em] text-[#8f9bb3] animate-pulse">
+                <div className={`font-['Orbitron'] ${isMobile ? 'text-sm' : 'text-xs md:text-sm'} tracking-[0.2em] text-[#8f9bb3] animate-pulse`}>
                   ESTABLISHING CORE SYSTEM SYNC...
                 </div>
               )}

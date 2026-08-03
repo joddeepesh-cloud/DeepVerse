@@ -17,8 +17,12 @@ export const CameraManager: React.FC = () => {
     inputs,
     autoExploreActive,
     autoExploreIndex,
-    autoExploreState
+    autoExploreState,
+    deviceType
   } = useExperience();
+
+  const isMobile = deviceType === 'mobile' || (typeof window !== 'undefined' && window.innerWidth < 768);
+  const zoomFactor = isMobile ? 0.77 : 1.0;
   
   // Vectors for target lock and smooth transition interpolations
   const targetLookAt = useRef<THREE.Vector3>(new THREE.Vector3(0, 0, 0));
@@ -120,8 +124,8 @@ export const CameraManager: React.FC = () => {
       case 'grand-finale': {
         // Grand Finale cinematic sequence: slowly lift upward and rotate around the city
         const fTime = finaleTimer.current;
-        const liftHeight = 4.2 + Math.min(fTime / 10.0, 1.0) * 35.0; // rises from 4.2 to 39.2
-        const radius = 11.0 + Math.min(fTime / 10.0, 1.0) * 20.0; // moves back to show scale
+        const liftHeight = (4.2 + Math.min(fTime / 10.0, 1.0) * 35.0) * zoomFactor; // rises from 4.2 to 39.2
+        const radius = (11.0 + Math.min(fTime / 10.0, 1.0) * 20.0) * zoomFactor; // moves back to show scale
         const angle = carYaw + fTime * 0.12; // slow orbit rotation
         
         goalPos.set(
@@ -129,21 +133,21 @@ export const CameraManager: React.FC = () => {
           carPos.y + liftHeight,
           carPos.z - Math.cos(angle) * radius
         );
-        goalTarget.copy(carPos).add(new THREE.Vector3(0, 1.8, 0));
+        goalTarget.copy(carPos).add(new THREE.Vector3(0, 1.8 * zoomFactor, 0));
         lerpSpeed = 0.025; // majestic smooth flight
         break;
       }
 
       case 'cinematic-pan': {
-        const sideDist = 11.0;
-        const sideHeight = 4.2;
+        const sideDist = 11.0 * zoomFactor;
+        const sideHeight = 4.2 * zoomFactor;
         const sideAngle = carYaw + Math.PI / 4.5;
         goalPos.set(
           carPos.x - Math.sin(sideAngle) * sideDist,
           carPos.y + sideHeight,
           carPos.z - Math.cos(sideAngle) * sideDist
         );
-        goalTarget.copy(carPos).add(new THREE.Vector3(0, 1.4, 0));
+        goalTarget.copy(carPos).add(new THREE.Vector3(0, 1.4 * zoomFactor, 0));
         lerpSpeed = 0.035; // extra slow cinematic sweep
         break;
       }
@@ -151,40 +155,40 @@ export const CameraManager: React.FC = () => {
       case 'cinematic':
         // Circular sweep around the vehicle
         introTimer.current += dt * 0.22;
-        const radius = 10.5;
+        const radius = 10.5 * zoomFactor;
         goalPos.set(
           carPos.x + Math.sin(introTimer.current) * radius,
-          carPos.y + 1.8,
+          carPos.y + 1.8 * zoomFactor,
           carPos.z + Math.cos(introTimer.current) * radius
         );
-        goalTarget.copy(carPos).add(new THREE.Vector3(0, 0.8, 0));
+        goalTarget.copy(carPos).add(new THREE.Vector3(0, 0.8 * zoomFactor, 0));
         lerpSpeed = 0.03; // extra slow glide
         break;
 
       case 'follow': {
         // Behind and above the car
-        const followDist = autoExploreActive ? 9.5 : 8.5;
-        const followHeight = autoExploreActive ? 4.0 : 3.6;
+        const followDist = (autoExploreActive ? 9.5 : 8.5) * zoomFactor;
+        const followHeight = (autoExploreActive ? 4.0 : 3.6) * zoomFactor;
         goalPos.set(
           carPos.x - Math.sin(carYaw) * followDist,
           carPos.y + followHeight,
           carPos.z - Math.cos(carYaw) * followDist
         );
-        goalTarget.copy(carPos).add(new THREE.Vector3(0, autoExploreActive ? 1.0 : 0.8, -1.0)); // look slightly ahead
+        goalTarget.copy(carPos).add(new THREE.Vector3(0, (autoExploreActive ? 1.0 : 0.8) * zoomFactor, -1.0 * zoomFactor)); // look slightly ahead
         lerpSpeed = autoExploreActive ? 0.05 : 0.08;
         break;
       }
 
       case 'chase':
         // Close, low rear bumper chase view
-        const chaseDist = 6.2;
-        const chaseHeight = 2.0;
+        const chaseDist = 6.2 * zoomFactor;
+        const chaseHeight = 2.0 * zoomFactor;
         goalPos.set(
           carPos.x - Math.sin(carYaw) * chaseDist,
           carPos.y + chaseHeight,
           carPos.z - Math.cos(carYaw) * chaseDist
         );
-        goalTarget.copy(carPos).add(new THREE.Vector3(0, 0.6, -2.5));
+        goalTarget.copy(carPos).add(new THREE.Vector3(0, 0.6 * zoomFactor, -2.5 * zoomFactor));
         lerpSpeed = 0.15; // responsive follow
         break;
 
@@ -200,15 +204,15 @@ export const CameraManager: React.FC = () => {
 
       case 'drone': {
         // Drone view flies high above, framing the skyline composition beautifully
-        const droneDist = 32.0;
-        const droneHeight = 40.0;
+        const droneDist = 32.0 * zoomFactor;
+        const droneHeight = 40.0 * zoomFactor;
         goalPos.set(
           carPos.x - Math.sin(carYaw) * droneDist,
           carPos.y + droneHeight,
           carPos.z - Math.cos(carYaw) * droneDist
         );
         // Look ahead of vehicle to tilt camera down slightly and show the massive skyline
-        const localDroneTarget = new THREE.Vector3(0, 1.8, -6.5);
+        const localDroneTarget = new THREE.Vector3(0, 1.8 * zoomFactor, -6.5 * zoomFactor);
         goalTarget.copy(localDroneTarget).applyMatrix4(vehicle.matrixWorld);
         lerpSpeed = 0.025; // smooth majestic flight lag
         break;
@@ -216,7 +220,7 @@ export const CameraManager: React.FC = () => {
 
       case 'orbit':
         // Unlocked Orbit controls
-        goalTarget.copy(carPos).add(new THREE.Vector3(0, 1.0, 0));
+        goalTarget.copy(carPos).add(new THREE.Vector3(0, 1.0 * zoomFactor, 0));
         break;
 
       default:
