@@ -2,8 +2,13 @@ import React, { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three';
+import { useExperience } from '../../context/ExperienceContext';
 
 export const PortfolioDistricts: React.FC = () => {
+  const { deviceType } = useExperience();
+  const isMobile = deviceType === 'mobile';
+  const scaleFontSize = (size: number) => isMobile ? `${Math.round(size * 1.55)}px` : `${size}px`;
+
   const timeRef = useRef<number>(0);
 
   // Group references for floating/rotating animations
@@ -108,7 +113,7 @@ export const PortfolioDistricts: React.FC = () => {
             <div style={{
               fontFamily: 'Orbitron',
               color: '#00f0ff',
-              fontSize: '18px',
+              fontSize: scaleFontSize(18),
               fontWeight: 'black',
               letterSpacing: '0.2em',
               textShadow: '0 0 10px #00f0ff',
@@ -119,7 +124,7 @@ export const PortfolioDistricts: React.FC = () => {
             <div style={{
               fontFamily: 'Orbitron',
               color: '#ff007f',
-              fontSize: '10px',
+              fontSize: scaleFontSize(10),
               fontWeight: 'bold',
               letterSpacing: '0.1em',
               textShadow: '0 0 8px #ff007f',
@@ -154,7 +159,7 @@ export const PortfolioDistricts: React.FC = () => {
           <div style={{
             fontFamily: 'Orbitron',
             color: '#00f0ff',
-            fontSize: '16px',
+            fontSize: scaleFontSize(16),
             fontWeight: 'bold',
             textShadow: '0 0 10px #00f0ff',
             whiteSpace: 'nowrap'
@@ -164,7 +169,7 @@ export const PortfolioDistricts: React.FC = () => {
           <div style={{
             fontFamily: 'Orbitron',
             color: '#ffaa00',
-            fontSize: '10px',
+            fontSize: scaleFontSize(10),
             fontWeight: 'normal',
             letterSpacing: '0.05em',
             textShadow: '0 0 8px #ffaa00',
@@ -186,7 +191,7 @@ export const PortfolioDistricts: React.FC = () => {
           <div style={{
             fontFamily: 'Orbitron',
             color: '#00f0ff',
-            fontSize: '18px',
+            fontSize: scaleFontSize(18),
             fontWeight: 'bold',
             textShadow: '0 0 10px #00f0ff',
             whiteSpace: 'nowrap'
@@ -208,7 +213,7 @@ export const PortfolioDistricts: React.FC = () => {
               <meshBasicMaterial color="#00f0ff" />
             </mesh>
             <Html position={[0, 2.4, 0]} center transform distanceFactor={12}>
-              <div style={{ fontFamily: 'Orbitron', color: '#00f0ff', fontSize: '9px', whiteSpace: 'nowrap' }}>REACT</div>
+              <div style={{ fontFamily: 'Orbitron', color: '#00f0ff', fontSize: scaleFontSize(9), whiteSpace: 'nowrap' }}>REACT</div>
             </Html>
           </group>
 
@@ -223,7 +228,7 @@ export const PortfolioDistricts: React.FC = () => {
               <meshStandardMaterial color="#050510" roughness={0.1} metalness={0.9} wireframe />
             </mesh>
             <Html position={[0, 2.4, 0]} center transform distanceFactor={12}>
-              <div style={{ fontFamily: 'Orbitron', color: '#ffaa00', fontSize: '9px', whiteSpace: 'nowrap' }}>THREE.JS</div>
+              <div style={{ fontFamily: 'Orbitron', color: '#ffaa00', fontSize: scaleFontSize(9), whiteSpace: 'nowrap' }}>THREE.JS</div>
             </Html>
           </group>
 
@@ -238,7 +243,7 @@ export const PortfolioDistricts: React.FC = () => {
               <meshBasicMaterial color="#ff007f" wireframe />
             </mesh>
             <Html position={[0, 2.4, 0]} center transform distanceFactor={12}>
-              <div style={{ fontFamily: 'Orbitron', color: '#ff007f', fontSize: '9px', whiteSpace: 'nowrap' }}>TS</div>
+              <div style={{ fontFamily: 'Orbitron', color: '#ff007f', fontSize: scaleFontSize(9), whiteSpace: 'nowrap' }}>TS</div>
             </Html>
           </group>
 
@@ -253,7 +258,7 @@ export const PortfolioDistricts: React.FC = () => {
               <meshBasicMaterial color="#00f0ff" />
             </mesh>
             <Html position={[0, 2.4, 0]} center transform distanceFactor={12}>
-              <div style={{ fontFamily: 'Orbitron', color: '#00f0ff', fontSize: '9px', whiteSpace: 'nowrap' }}>PYTHON</div>
+              <div style={{ fontFamily: 'Orbitron', color: '#00f0ff', fontSize: scaleFontSize(9), whiteSpace: 'nowrap' }}>PYTHON</div>
             </Html>
           </group>
 
@@ -268,7 +273,7 @@ export const PortfolioDistricts: React.FC = () => {
               <meshBasicMaterial color="#9d00ff" />
             </mesh>
             <Html position={[0, 2.4, 0]} center transform distanceFactor={12}>
-              <div style={{ fontFamily: 'Orbitron', color: '#9d00ff', fontSize: '9px', whiteSpace: 'nowrap' }}>C++</div>
+              <div style={{ fontFamily: 'Orbitron', color: '#9d00ff', fontSize: scaleFontSize(9), whiteSpace: 'nowrap' }}>C++</div>
             </Html>
           </group>
         </group>
@@ -332,7 +337,7 @@ export const PortfolioDistricts: React.FC = () => {
           <div style={{
             fontFamily: 'Orbitron',
             color: '#00f0ff',
-            fontSize: '28px',
+            fontSize: scaleFontSize(28),
             fontWeight: 'bold',
             textShadow: '0 0 10px #00f0ff',
             transform: 'rotate(-90deg)',
@@ -374,7 +379,7 @@ export const PortfolioDistricts: React.FC = () => {
           <div style={{
             fontFamily: 'Orbitron',
             color: '#ff007f',
-            fontSize: '15px',
+            fontSize: scaleFontSize(15),
             fontWeight: 'bold',
             textShadow: '0 0 10px #ff007f',
             whiteSpace: 'nowrap'
@@ -392,7 +397,7 @@ export const PortfolioDistricts: React.FC = () => {
           <div style={{
             fontFamily: 'Orbitron',
             color: '#ffaa00',
-            fontSize: '18px',
+            fontSize: scaleFontSize(18),
             fontWeight: 'bold',
             textShadow: '0 0 10px #ffaa00',
             whiteSpace: 'nowrap'
@@ -413,7 +418,7 @@ export const PortfolioDistricts: React.FC = () => {
               <meshBasicMaterial color="#ff007f" wireframe />
             </mesh>
             <Html position={[0, 2.0, 0]} center transform distanceFactor={12}>
-              <div style={{ fontFamily: 'Orbitron', color: '#ff007f', fontSize: '8px', whiteSpace: 'nowrap' }}>DEEPVERSE 3D</div>
+              <div style={{ fontFamily: 'Orbitron', color: '#ff007f', fontSize: scaleFontSize(8), whiteSpace: 'nowrap' }}>DEEPVERSE 3D</div>
             </Html>
           </group>
 
@@ -427,7 +432,7 @@ export const PortfolioDistricts: React.FC = () => {
               <meshBasicMaterial color="#00f0ff" wireframe />
             </mesh>
              <Html position={[0, 2.0, 0]} center transform distanceFactor={12}>
-               <div style={{ fontFamily: 'Orbitron', color: '#00f0ff', fontSize: '8px', whiteSpace: 'nowrap' }}>SATELLITE IMAGE RTV</div>
+               <div style={{ fontFamily: 'Orbitron', color: '#00f0ff', fontSize: scaleFontSize(8), whiteSpace: 'nowrap' }}>SATELLITE IMAGE RTV</div>
              </Html>
           </group>
         </group>
@@ -441,7 +446,7 @@ export const PortfolioDistricts: React.FC = () => {
           <div style={{
             fontFamily: 'Orbitron',
             color: '#00f0ff',
-            fontSize: '18px',
+            fontSize: scaleFontSize(18),
             fontWeight: 'bold',
             textShadow: '0 0 10px #00f0ff',
             whiteSpace: 'nowrap'
@@ -463,7 +468,7 @@ export const PortfolioDistricts: React.FC = () => {
             <div style={{
               fontFamily: 'Orbitron',
               color: '#ff007f',
-              fontSize: '8px',
+              fontSize: scaleFontSize(8),
               fontWeight: 'bold',
               textAlign: 'center',
               lineHeight: '1.4',
@@ -483,7 +488,7 @@ export const PortfolioDistricts: React.FC = () => {
           <div style={{
             fontFamily: 'Orbitron',
             color: '#ffaa00',
-            fontSize: '16px',
+            fontSize: scaleFontSize(16),
             fontWeight: 'bold',
             textShadow: '0 0 10px #ffaa00',
             whiteSpace: 'nowrap'
@@ -540,7 +545,7 @@ export const PortfolioDistricts: React.FC = () => {
           <div style={{
             fontFamily: 'Orbitron',
             color: '#00f0ff',
-            fontSize: '15px',
+            fontSize: scaleFontSize(15),
             fontWeight: 'bold',
             textShadow: '0 0 10px #00f0ff',
             whiteSpace: 'nowrap'
@@ -570,7 +575,7 @@ export const PortfolioDistricts: React.FC = () => {
           <div style={{
             fontFamily: 'Orbitron',
             color: '#00f0ff',
-            fontSize: '16px',
+            fontSize: scaleFontSize(16),
             fontWeight: 'bold',
             textShadow: '0 0 10px #00f0ff',
             whiteSpace: 'nowrap'
@@ -588,7 +593,7 @@ export const PortfolioDistricts: React.FC = () => {
           <div style={{
             fontFamily: 'Orbitron',
             color: '#ffaa00',
-            fontSize: '16px',
+            fontSize: scaleFontSize(16),
             fontWeight: 'bold',
             textShadow: '0 0 10px #ffaa00',
             whiteSpace: 'nowrap'
@@ -605,7 +610,7 @@ export const PortfolioDistricts: React.FC = () => {
               <meshBasicMaterial color="#00f0ff" wireframe />
             </mesh>
             <Html position={[0, 0.8, 0]} center transform distanceFactor={10}>
-              <div style={{ fontFamily: 'Orbitron', color: '#00f0ff', fontSize: '7px', whiteSpace: 'nowrap' }}>LINKEDIN</div>
+              <div style={{ fontFamily: 'Orbitron', color: '#00f0ff', fontSize: scaleFontSize(7), whiteSpace: 'nowrap' }}>LINKEDIN</div>
             </Html>
           </group>
           <group position={[1.5, 1.2, 0]}>
@@ -614,7 +619,7 @@ export const PortfolioDistricts: React.FC = () => {
               <meshBasicMaterial color="#ff007f" wireframe />
             </mesh>
             <Html position={[0, 0.8, 0]} center transform distanceFactor={10}>
-              <div style={{ fontFamily: 'Orbitron', color: '#ff007f', fontSize: '7px', whiteSpace: 'nowrap' }}>EMAIL</div>
+              <div style={{ fontFamily: 'Orbitron', color: '#ff007f', fontSize: scaleFontSize(7), whiteSpace: 'nowrap' }}>EMAIL</div>
             </Html>
           </group>
         </group>

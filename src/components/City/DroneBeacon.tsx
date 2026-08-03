@@ -2,12 +2,15 @@ import React, { useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three';
+import { useExperience } from '../../context/ExperienceContext';
 
 interface DroneBeaconProps {
   active: boolean;
 }
 
 export const DroneBeacon: React.FC<DroneBeaconProps> = ({ active }) => {
+  const { deviceType } = useExperience();
+  const isMobile = deviceType === 'mobile';
   const transitionT = useRef<number>(0);
   const [shouldRender, setShouldRender] = useState(false);
 
@@ -122,7 +125,7 @@ export const DroneBeacon: React.FC<DroneBeaconProps> = ({ active }) => {
             pointerEvents: 'none'
           }}
         >
-          <div className="font-['Orbitron'] text-[9px] font-black tracking-[0.3em] text-[#00f0ff] bg-black/85 border border-[#00f0ff]/40 px-3 py-1.5 rounded-sm whitespace-nowrap shadow-[0_0_15px_rgba(0,240,255,0.45)] text-center select-none uppercase">
+          <div className={`font-['Orbitron'] ${isMobile ? 'text-xs px-4 py-2 border-[#00f0ff]' : 'text-[9px] px-3 py-1.5'} font-black tracking-[0.3em] text-[#00f0ff] bg-black/85 border border-[#00f0ff]/40 rounded-sm whitespace-nowrap shadow-[0_0_15px_rgba(0,240,255,0.45)] text-center select-none uppercase`}>
             <span className="text-[#ff007f] mr-1.5">◆</span>
             DEEP CORE
             <span className="text-[#ff007f] ml-1.5">◆</span>

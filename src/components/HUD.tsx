@@ -793,13 +793,13 @@ export const HUD: React.FC = () => {
       {/* 2.5. DISTRICT INFO PANEL CARD */}
       {((autoExploreActive && (autoExploreState === 'paused' || autoExploreState === 'manually_paused') && currentDistrict) ||
         (!autoExploreActive && manualOpenDetailsIndex !== -1)) && (
-        <div className="absolute left-4 md:left-12 top-1/3 md:top-1/2 -translate-y-1/2 pointer-events-auto z-50 max-w-[420px] w-[90%]">
-          <div className="glass-panel p-6 border-[#00f0ff]/40 bg-black/85 shadow-[0_0_30px_rgba(0,240,255,0.25)] relative overflow-hidden animate-slide-in">
+        <div className="absolute left-1/2 -translate-x-1/2 md:left-12 md:translate-x-0 top-1/2 -translate-y-1/2 pointer-events-auto z-50 max-w-[390px] w-[92%] sm:w-[85%] md:w-full">
+          <div className="glass-panel p-5 md:p-6 border-[#00f0ff]/40 bg-black/90 shadow-[0_0_30px_rgba(0,240,255,0.25)] relative overflow-y-auto max-h-[65vh] sm:max-h-[75vh] animate-slide-in flex flex-col gap-3">
             {/* Close button for manual exploration mode */}
             {!autoExploreActive && (
               <button
                 onClick={() => setManualOpenDetailsIndex(-1)}
-                className="absolute top-3 right-3 text-white/50 hover:text-white font-['Orbitron'] text-[9px] font-black tracking-wider transition-all border border-white/10 hover:border-[#ff007f] hover:text-[#ff007f] px-2.5 py-1 rounded bg-black/50 hover:bg-[#ff007f]/10 z-10"
+                className="absolute top-3 right-3 text-white/50 hover:text-white font-['Orbitron'] text-[10px] font-black tracking-wider transition-all border border-white/10 hover:border-[#ff007f] hover:text-[#ff007f] px-3 py-1.5 rounded bg-black/50 hover:bg-[#ff007f]/10 z-10"
               >
                 ✕ CLOSE
               </button>
@@ -811,15 +811,15 @@ export const HUD: React.FC = () => {
             <div className="absolute bottom-0 left-0 w-3.5 h-3.5 border-b-2 border-l-2 border-[#00f0ff]" />
             <div className="absolute bottom-0 right-0 w-3.5 h-3.5 border-b-2 border-r-2 border-[#00f0ff]" />
 
-            <div className="flex flex-col gap-1.5">
-              <span className="font-['Orbitron'] text-[10px] font-extrabold tracking-[0.25em] text-[#ff007f]">
+            <div className="flex flex-col gap-1.5 text-left">
+              <span className="font-['Orbitron'] text-xs sm:text-sm md:text-[10px] font-extrabold tracking-[0.25em] text-[#ff007f]">
                 {autoExploreActive ? currentDistrict.subtitle : DISTRICT_DATA[manualOpenDetailsIndex]?.subtitle}
               </span>
-              <h2 className="font-['Orbitron'] text-lg md:text-xl font-black text-white tracking-widest uppercase border-b border-[#00f0ff]/20 pb-3 mt-1">
+              <h2 className="font-['Orbitron'] text-xl sm:text-2xl md:text-xl font-black text-white tracking-widest uppercase border-b border-[#00f0ff]/20 pb-3 mt-1">
                 {autoExploreActive ? currentDistrict.title : DISTRICT_DATA[manualOpenDetailsIndex]?.title}
               </h2>
               
-              <ul className="space-y-3.5 my-5 font-mono text-[11px] md:text-xs text-[#b0bacf] list-none pl-0">
+              <ul className="space-y-3.5 my-4 sm:my-5 font-mono text-xs sm:text-sm md:text-xs text-[#b0bacf] list-none pl-0">
                 {(autoExploreActive ? currentDistrict.achievements : DISTRICT_DATA[manualOpenDetailsIndex]?.achievements || []).map((item, idx) => (
                   <li key={idx} className="flex items-start gap-2.5">
                     <span className="text-[#00f0ff] font-bold">❯</span>
@@ -834,7 +834,7 @@ export const HUD: React.FC = () => {
                   href={autoExploreActive ? currentDistrict.buttonUrl : DISTRICT_DATA[manualOpenDetailsIndex]?.buttonUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-2 block w-full text-center py-3 bg-[#00f0ff]/15 hover:bg-[#00f0ff]/30 border border-[#00f0ff] rounded font-['Orbitron'] text-[10px] font-black tracking-widest text-[#00f0ff] transition-all shadow-[0_0_12px_rgba(0,240,255,0.2)]"
+                  className="mt-2 block w-full text-center py-3.5 sm:py-4 bg-[#00f0ff]/15 hover:bg-[#00f0ff]/30 border border-[#00f0ff] rounded font-['Orbitron'] text-xs sm:text-sm md:text-[10px] font-black tracking-widest text-[#00f0ff] transition-all shadow-[0_0_12px_rgba(0,240,255,0.2)]"
                 >
                   {autoExploreActive ? currentDistrict.buttonText : DISTRICT_DATA[manualOpenDetailsIndex]?.buttonText}
                 </a>
@@ -989,10 +989,10 @@ export const HUD: React.FC = () => {
               onTouchStart={handleJoystickStart}
               onTouchMove={handleJoystickMove}
               onTouchEnd={handleJoystickEnd}
-              className="w-24 h-24 bg-black/60 border border-white/10 rounded-full flex items-center justify-center touch-none relative select-none"
+              className="w-28 h-28 bg-black/60 border border-white/10 rounded-full flex items-center justify-center touch-none relative select-none"
             >
               <div
-                className="w-10 h-10 bg-[#00f0ff]/20 border-2 border-[#00f0ff] rounded-full absolute shadow-[0_0_10px_#00f0ff]"
+                className="w-12 h-12 bg-[#00f0ff]/20 border-2 border-[#00f0ff] rounded-full absolute shadow-[0_0_10px_#00f0ff]"
                 style={{
                   transform: `translate(${joystickPos.x}px, ${joystickPos.y}px)`
                 }}
@@ -1003,7 +1003,7 @@ export const HUD: React.FC = () => {
               <button
                 onTouchStart={() => setInputs((p) => ({ ...p, backward: true }))}
                 onTouchEnd={() => setInputs((p) => ({ ...p, backward: false }))}
-                className="w-16 h-16 bg-[#ff007f]/10 border border-[#ff007f]/40 rounded-full font-['Orbitron'] text-xs font-bold text-[#ff007f] active:bg-[#ff007f]/30 active:scale-95 transition-all select-none"
+                className="w-20 h-20 bg-[#ff007f]/10 border border-[#ff007f]/40 rounded-full font-['Orbitron'] text-sm font-bold text-[#ff007f] active:bg-[#ff007f]/30 active:scale-95 transition-all select-none"
               >
                 BRAKE
               </button>
@@ -1011,24 +1011,24 @@ export const HUD: React.FC = () => {
               <button
                 onTouchStart={() => setInputs((p) => ({ ...p, forward: true }))}
                 onTouchEnd={() => setInputs((p) => ({ ...p, forward: false }))}
-                className="w-16 h-16 bg-[#00f0ff]/10 border border-[#00f0ff]/40 rounded-full font-['Orbitron'] text-xs font-bold text-[#00f0ff] active:bg-[#00f0ff]/30 active:scale-95 transition-all select-none"
+                className="w-20 h-20 bg-[#00f0ff]/10 border border-[#00f0ff]/40 rounded-full font-['Orbitron'] text-sm font-bold text-[#00f0ff] active:bg-[#00f0ff]/30 active:scale-95 transition-all select-none"
               >
                 DRIVE
               </button>
             </div>
           </div>
 
-          <div className="w-full flex justify-center gap-3 mt-4 pointer-events-auto pb-4">
+          <div className="w-full flex justify-center gap-4 mt-4 pointer-events-auto pb-4">
             <button
               onTouchStart={() => setInputs((p) => ({ ...p, boost: true }))}
               onTouchEnd={() => setInputs((p) => ({ ...p, boost: false }))}
-              className="px-3 py-1.5 rounded glass-panel border border-[#ff007f]/20 text-[9px] font-['Orbitron'] font-bold text-[#ff007f] select-none"
+              className="px-5 py-2.5 rounded glass-panel border border-[#ff007f]/20 text-xs font-['Orbitron'] font-bold text-[#ff007f] select-none"
             >
               BOOST
             </button>
             <button
               onClick={() => setInputs((p) => ({ ...p, reset: true }))}
-              className="px-3 py-1.5 rounded glass-panel border border-[#ffaa00]/20 text-[9px] font-['Orbitron'] font-bold text-[#ffaa00] select-none"
+              className="px-5 py-2.5 rounded glass-panel border border-[#ffaa00]/20 text-xs font-['Orbitron'] font-bold text-[#ffaa00] select-none"
             >
               RESET
             </button>
@@ -1040,19 +1040,19 @@ export const HUD: React.FC = () => {
 
       {/* Mobile/Tablet Tip Notification */}
       {showMobileTip && (deviceType === 'mobile' || deviceType === 'tablet') && sceneState === 'explore' && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 w-[90%] max-w-[380px] glass-panel p-4 border-[#00f0ff]/30 bg-black/90 shadow-[0_0_20px_rgba(0,240,255,0.2)] pointer-events-auto z-[60] flex items-start gap-3 animate-slide-in">
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 w-[92%] max-w-[380px] glass-panel p-4 border-[#00f0ff]/30 bg-black/90 shadow-[0_0_20px_rgba(0,240,255,0.2)] pointer-events-auto z-[60] flex items-start gap-3 animate-slide-in">
           <span className="text-lg">💡</span>
-          <div className="flex-1 flex flex-col gap-1">
-            <span className="font-['Orbitron'] text-[9px] font-black tracking-widest text-[#00f0ff] uppercase">
+          <div className="flex-1 flex flex-col gap-1 text-left">
+            <span className="font-['Orbitron'] text-[10px] sm:text-xs font-black tracking-widest text-[#00f0ff] uppercase">
               💡 Tip
             </span>
-            <p className="font-mono text-[9px] text-[#b0bacf] leading-relaxed">
+            <p className="font-mono text-[11px] sm:text-xs text-[#b0bacf] leading-relaxed">
               For the complete interactive driving experience, visit DeepVerse on a laptop or desktop. Auto Explore lets you enjoy the full city from any device.
             </p>
           </div>
           <button
             onClick={() => setShowMobileTip(false)}
-            className="text-white/40 hover:text-white font-mono text-[10px] px-1 hover:text-[#ff007f] transition-all cursor-pointer"
+            className="text-white/40 hover:text-white font-mono text-[12px] px-1 hover:text-[#ff007f] transition-all cursor-pointer"
           >
             ✕
           </button>
